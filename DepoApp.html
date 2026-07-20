@@ -194,10 +194,11 @@ function pushLoginEmpleado(id){if(!ONESIGNAL_APP_ID)return;window.OneSignalDefer
 function pushLogout(){if(!ONESIGNAL_APP_ID)return;window.OneSignalDeferred.push(function(O){try{O.logout()}catch(e){}})}
 function pedirPermisoPush(){
   if(!ONESIGNAL_APP_ID){alert('Falta configurar OneSignal (App ID).');return}
-  if(!('Notification' in window)){alert('Este navegador no soporta notificaciones.');return}
+  /* el soporte se chequea despues del caso iPhone */
   var esIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
   var instalada=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
   if(esIOS&&!instalada){alert('📱 En iPhone primero tenés que instalar la app:\n\n1) Tocá el botón Compartir (el cuadrado con la flecha hacia arriba)\n2) Elegí Agregar a pantalla de inicio\n3) Abrí DepoApp desde ese ícono nuevo\n4) Volvé a tocar Activar notificaciones\n\nEs una limitación de Apple, no de la app.');return}
+  if(!('Notification' in window)){alert('Este navegador no soporta notificaciones web. En iPhone necesitas iOS 16.4 o mas nuevo y la app agregada a la pantalla de inicio.');return}
   if(Notification.permission==='granted'){alert('🔔 Ya tenés las notificaciones activadas.');return}
   if(Notification.permission==='denied'){alert('🔕 Las notificaciones están bloqueadas para este sitio.\n\nTocá el candado al lado de la dirección web, entrá a Permisos y activá Notificaciones. Después volvé a probar.');return}
   window.OneSignalDeferred.push(async function(O){
