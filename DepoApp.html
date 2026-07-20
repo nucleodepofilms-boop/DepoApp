@@ -184,9 +184,12 @@ function logoSVG(s){s=s||30;return `<svg width="${s}" height="${s}" viewBox="0 0
 <path d="M22 27 L28 30 L22 33 Z" fill="#ffd21e"/></svg>`}
 function logoFull(px){return `${logoSVG(px||30)}<span class="logotext" style="font-size:${(px||30)*.72}px">Depo<b>App</b></span>`}
 
-const ONESIGNAL_APP_ID="";
+const ONESIGNAL_APP_ID="55f23b36-7eed-47b8-9742-84c48180ff5a";
 window.OneSignalDeferred=window.OneSignalDeferred||[];
-function initPush(){if(!ONESIGNAL_APP_ID)return;window.OneSignalDeferred.push(async function(O){try{await O.init({appId:ONESIGNAL_APP_ID,allowLocalhostAsSecureOrigin:true})}catch(e){}})}
+function initPush(){if(!ONESIGNAL_APP_ID)return;window.OneSignalDeferred.push(async function(O){try{
+  await O.init({appId:ONESIGNAL_APP_ID, allowLocalhostAsSecureOrigin:true,
+    serviceWorkerPath:"sw.js", serviceWorkerParam:{scope:"./"}})
+}catch(e){}})}
 function pushLoginEmpleado(id){if(!ONESIGNAL_APP_ID)return;window.OneSignalDeferred.push(function(O){try{O.login(id)}catch(e){}})}
 function pushLogout(){if(!ONESIGNAL_APP_ID)return;window.OneSignalDeferred.push(function(O){try{O.logout()}catch(e){}})}
 function pedirPermisoPush(){if(!ONESIGNAL_APP_ID){alert("Falta configurar OneSignal: pegá tu App ID y publicá la app.");return}window.OneSignalDeferred.push(function(O){try{O.Notifications.requestPermission()}catch(e){}})}
