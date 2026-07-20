@@ -13,123 +13,90 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <style>
-  :root{
-    --bg:#0a0a0a; --panel:#141414; --panel2:#1c1c1c; --line:#2a2a2a;
-    --txt:#f2f2f2; --muted:#8f8f8f;
-    --yellow:#ffd21e; --yellow2:#ffe06b; --yellowd:#3a3208;
-    --green:#3ecf8e; --red:#ff5c5c; --blue:#5b9dff; --amber:#f5b942; --purple:#c88bff;
-    --radius:16px;
-  }
+  :root{--bg:#0a0a0a;--panel:#141414;--panel2:#1c1c1c;--line:#2a2a2a;--txt:#f2f2f2;--muted:#8f8f8f;
+    --yellow:#ffd21e;--yellow2:#ffe06b;--yellowd:#3a3208;--green:#3ecf8e;--red:#ff5c5c;--blue:#5b9dff;--amber:#f5b942;--purple:#c88bff;--radius:16px}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-    background:var(--bg);color:var(--txt);font-size:15px;line-height:1.45}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt);font-size:15px;line-height:1.45}
   .hidden{display:none!important}
   button{font-family:inherit;cursor:pointer;border:none;outline:none}
   input,select,textarea{font-family:inherit;font-size:15px}
   ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:8px}
-
   .logomark{display:inline-flex;align-items:center;gap:10px}
-  .logotext{font-weight:800;letter-spacing:-.5px;line-height:1}
-  .logotext b{color:var(--yellow)}
-
-  #login{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    padding:24px;background:radial-gradient(1200px 600px at 50% -5%, #1c1a0a 0%, var(--bg) 55%)}
+  .logotext{font-weight:800;letter-spacing:-.5px;line-height:1}.logotext b{color:var(--yellow)}
+  #login{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:radial-gradient(1200px 600px at 50% -5%,#1c1a0a 0%,var(--bg) 55%)}
   #login .logomark{margin-bottom:6px}
   .tagline{color:var(--muted);margin-bottom:26px;font-size:12px;letter-spacing:3px;text-transform:uppercase}
   .who{width:100%;max-width:440px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .who button{background:var(--panel);border:1px solid var(--line);color:var(--txt);
-    padding:14px 10px;border-radius:14px;font-weight:600;display:flex;flex-direction:column;gap:6px;align-items:center;transition:.15s}
+  .who button{background:var(--panel);border:1px solid var(--line);color:var(--txt);padding:14px 10px;border-radius:14px;font-weight:600;display:flex;flex-direction:column;gap:6px;align-items:center;transition:.15s}
   .who button:hover{border-color:var(--yellow);transform:translateY(-2px)}
   .who button.boss{grid-column:1/-1;background:linear-gradient(135deg,#2a2408,#141414);border-color:var(--yellow)}
-  .avatar{width:40px;height:40px;border-radius:50%;background:var(--panel2);display:flex;align-items:center;justify-content:center;
-    font-weight:800;color:var(--yellow);font-size:15px;border:1px solid var(--line)}
+  .avatar{width:40px;height:40px;border-radius:50%;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--yellow);font-size:15px;border:1px solid var(--line)}
   .who small{color:var(--muted);font-weight:500;font-size:11.5px}
   #pinPad{width:100%;max-width:320px;text-align:center}
-  #pinPad h3{margin:6px 0 2px}
-  #pinPad p{color:var(--muted);margin:0 0 8px;font-size:13px}
+  #pinPad h3{margin:6px 0 2px}#pinPad p{color:var(--muted);margin:0 0 8px;font-size:13px}
   .pindots{display:flex;gap:12px;justify-content:center;margin:16px 0}
   .pindot{width:14px;height:14px;border-radius:50%;border:2px solid var(--line)}
   .pindot.on{background:var(--yellow);border-color:var(--yellow)}
   .keys{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  .keys button{background:var(--panel);border:1px solid var(--line);color:var(--txt);height:60px;border-radius:14px;font-size:22px;font-weight:600;transition:.1s}
+  .keys button{background:var(--panel);border:1px solid var(--line);color:var(--txt);height:60px;border-radius:14px;font-size:22px;font-weight:600}
   .keys button:active{background:var(--yellow);color:#111}
   .keys button.wide{font-size:15px}
   .link{color:var(--muted);background:none;margin-top:14px;font-size:13px;text-decoration:underline}
   .err{color:var(--red);font-size:13px;min-height:18px;margin-top:4px}
-
   #app{max-width:1100px;margin:0 auto;padding-bottom:96px}
-  .topbar{position:sticky;top:0;z-index:20;background:rgba(10,10,10,.9);backdrop-filter:blur(10px);
-    border-bottom:1px solid var(--line);padding:10px 14px;display:flex;align-items:center;gap:10px}
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(10,10,10,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:10px 14px;display:flex;align-items:center;gap:10px}
   .topbar .spacer{flex:1}
-  .userchip{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);
-    padding:5px 10px 5px 5px;border-radius:30px;font-size:13px;font-weight:600}
+  .userchip{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);padding:5px 10px 5px 5px;border-radius:30px;font-size:13px;font-weight:600}
   .userchip .avatar{width:26px;height:26px;font-size:11px}
-  .roletag{font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:2px 7px;border-radius:20px;
-    background:var(--yellowd);color:var(--yellow2);border:1px solid #4a3f0e}
+  .roletag{font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:2px 7px;border-radius:20px;background:var(--yellowd);color:var(--yellow2);border:1px solid #4a3f0e}
   .roletag.emp{background:#132030;color:var(--blue);border-color:#274158}
   .iconbtn{background:var(--panel);border:1px solid var(--line);color:var(--muted);width:34px;height:34px;border-radius:10px;font-size:16px}
   .iconbtn:hover{color:var(--yellow);border-color:var(--yellow)}
-
   main{padding:16px}
   .pagetitle{font-size:22px;font-weight:800;margin:6px 2px 16px}
   .pagetitle small{display:block;font-size:13px;color:var(--muted);font-weight:500;margin-top:2px}
   .sectitle{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:22px 2px 10px;font-weight:700}
   .sectitle:first-child{margin-top:6px}
-
-  .grid{display:grid;gap:12px}
-  .kpis{grid-template-columns:repeat(2,1fr)}
+  .grid{display:grid;gap:12px}.kpis{grid-template-columns:repeat(2,1fr)}
   @media(min-width:720px){.kpis{grid-template-columns:repeat(4,1fr)}}
+  .g2{grid-template-columns:1fr}@media(min-width:760px){.g2{grid-template-columns:1fr 1fr}}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
   .kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
   .kpi .lbl{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px}
-  .kpi .val{font-size:23px;font-weight:800;margin-top:4px}
+  .kpi .val{font-size:22px;font-weight:800;margin-top:4px}
   .kpi .sub{font-size:12px;color:var(--muted);margin-top:2px}
-  .val.green{color:var(--green)} .val.red{color:var(--red)} .val.gold{color:var(--yellow)}
-
-  .phead{display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,#211d08,#141414);
-    border:1px solid #3a3208;border-radius:var(--radius);padding:18px}
-  .phead .big{width:64px;height:64px;border-radius:50%;background:var(--panel2);border:2px solid var(--yellow);
-    display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:var(--yellow)}
-  .phead .n{font-size:20px;font-weight:800}
-  .phead .r{color:var(--muted);font-size:13px;margin-top:2px}
-
-  .alertbanner{display:flex;align-items:center;gap:10px;background:#2a2408;border:1px solid var(--yellow);
-    border-radius:14px;padding:12px 14px;margin:14px 0;font-weight:600;font-size:14px}
+  .val.green{color:var(--green)}.val.red{color:var(--red)}.val.gold{color:var(--yellow)}
+  .phead{display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,#211d08,#141414);border:1px solid #3a3208;border-radius:var(--radius);padding:18px}
+  .phead .big{width:64px;height:64px;border-radius:50%;background:var(--panel2);border:2px solid var(--yellow);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:var(--yellow)}
+  .phead .n{font-size:20px;font-weight:800}.phead .r{color:var(--muted);font-size:13px;margin-top:2px}
+  .alertbanner{display:flex;align-items:center;gap:10px;background:#2a2408;border:1px solid var(--yellow);border-radius:14px;padding:12px 14px;margin:14px 0;font-weight:600;font-size:14px}
   .alertbanner .x{margin-left:auto}
-
-  .match{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);
-    border-radius:14px;padding:12px 14px;margin-bottom:10px}
+  .match{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
   .match.nuevo{border-color:var(--yellow);box-shadow:0 0 0 1px var(--yellow) inset}
   .match .day{width:50px;text-align:center;flex-shrink:0}
   .match .day .d{font-size:20px;font-weight:800;line-height:1}
   .match .day .m{font-size:11px;color:var(--muted);text-transform:uppercase}
-  .match .info{flex:1;min-width:0}
-  .match .info .club{font-weight:700}
+  .match .info{flex:1;min-width:0}.match .info .club{font-weight:700}
   .match .info .meta{font-size:12.5px;color:var(--muted);margin-top:2px}
   .match .right{text-align:right;flex-shrink:0}
   .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap}
-  .pill.prox{background:#132030;color:var(--blue)}
-  .pill.film{background:#132a20;color:var(--green)}
+  .pill.prox{background:#132030;color:var(--blue)}.pill.film{background:#132a20;color:var(--green)}
   .pill.entreg{background:var(--yellowd);color:var(--yellow2)}
-  .pill.edi{background:#241330;color:var(--purple)}
-  .pill.noedi{background:#22262e;color:var(--muted)}
+  .pill.edi{background:#241330;color:var(--purple)}.pill.noedi{background:#22262e;color:var(--muted)}
   .pill.nuevo{background:var(--yellow);color:#111}
-
+  .pill.comp{background:#0e2a24;color:var(--green)}
   table{width:100%;border-collapse:collapse;font-size:13.5px}
   th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line)}
   th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:700}
   td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
   .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  tr.clk{cursor:pointer}
-  tr.clk:hover td{background:var(--panel2)}
+  tr.clk{cursor:pointer}tr.clk:hover td{background:var(--panel2)}
   .badge{font-size:10.5px;padding:2px 8px;border-radius:20px;font-weight:700}
-  .badge.activo{background:#132a20;color:var(--green)}
-  .badge.riesgo{background:#2e2513;color:var(--amber)}
+  .badge.activo{background:#132a20;color:var(--green)}.badge.riesgo{background:#2e2513;color:var(--amber)}
   .badge.inactivo{background:#2a1a1a;color:var(--red)}
-  .badge.ing{background:#132a20;color:var(--green)}
-  .badge.egr{background:#2a1a1a;color:var(--red)}
-
+  .badge.ing{background:#132a20;color:var(--green)}.badge.egr{background:#2a1a1a;color:var(--red)}
+  .badge.si{background:#132a20;color:var(--green)}.badge.no{background:#2a1a1a;color:var(--red)}
   .clubcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden}
   .clubhead{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer}
   .clubhead .nm{font-weight:700;flex:1}
@@ -142,22 +109,19 @@
   .catrow:last-child{border-bottom:none}
   .catrow .cn{flex:1;min-width:0}
   .catrow .cn small{display:block;color:var(--muted);font-size:11.5px}
-  .catrow .pr{font-weight:700;color:var(--yellow);font-variant-numeric:tabular-nums}
-
+  .catrow .pr{font-weight:700;color:var(--yellow);font-variant-numeric:tabular-nums;text-align:right}
+  .catrow .pr small{display:block;color:var(--green);font-weight:600;font-size:11px}
   .obj{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;display:flex;gap:12px}
-  .obj .chk{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);flex-shrink:0;display:flex;
-    align-items:center;justify-content:center;font-weight:800;color:#111;cursor:pointer;transition:.15s}
+  .obj .chk{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:800;color:#111;cursor:pointer}
   .obj.done .chk{background:var(--green);border-color:var(--green)}
-  .obj .body{flex:1;min-width:0}
-  .obj .t{font-weight:700}
+  .obj .body{flex:1;min-width:0}.obj .t{font-weight:700}
   .obj.done .t{text-decoration:line-through;color:var(--muted)}
   .obj .d{font-size:12.5px;color:var(--muted);margin-top:3px}
   .tag{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;margin-top:6px;display:inline-block;margin-right:5px}
-  .tag.ok{background:#132a20;color:var(--green)}.tag.warn{background:#2e2513;color:var(--amber)}.tag.late{background:#2a1a1a;color:var(--red)}
-  .tag.who{background:#132030;color:var(--blue)}
+  .tag.ok{background:#132a20;color:var(--green)}.tag.warn{background:#2e2513;color:var(--amber)}
+  .tag.late{background:#2a1a1a;color:var(--red)}.tag.who{background:#132030;color:var(--blue)}
   .progressbar{height:8px;background:var(--panel2);border-radius:8px;overflow:hidden;margin-top:8px}
-  .progressbar > div{height:100%;background:linear-gradient(90deg,var(--yellow),var(--yellow2))}
-
+  .progressbar>div{height:100%;background:linear-gradient(90deg,var(--yellow),var(--yellow2))}
   .btn{background:var(--yellow);color:#111;font-weight:700;padding:11px 16px;border-radius:12px}
   .btn.ghost{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
   .btn.sm{padding:7px 12px;font-size:13px;border-radius:10px}
@@ -167,19 +131,15 @@
   .field input,.field select,.field textarea{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:11px 12px;border-radius:10px}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .chkline{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;margin-bottom:6px;cursor:pointer}
-  .chkline input{width:auto}
-  .chkline.on{border-color:var(--yellow)}
-
+  .chkline input{width:auto}.chkline.on{border-color:var(--yellow)}
   .modal{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;display:flex;align-items:flex-end;justify-content:center}
   @media(min-width:640px){.modal{align-items:center;padding:20px}}
   .modal .sheet{background:var(--panel);border:1px solid var(--line);border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:20px;max-height:92vh;overflow:auto}
   @media(min-width:640px){.modal .sheet{border-radius:20px}}
   .modal h3{margin:0 0 16px}
-
-  .bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(15,15,15,.96);backdrop-filter:blur(10px);
-    border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:8px 4px 10px;max-width:1100px;margin:0 auto}
-  .bottomnav button{background:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:4px 6px;border-radius:10px;flex:1;min-width:0}
-  .bottomnav button .ic{font-size:19px;line-height:1}
+  .bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(15,15,15,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:8px 2px 10px;max-width:1100px;margin:0 auto}
+  .bottomnav button{background:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9.5px;font-weight:600;padding:4px 4px;border-radius:10px;flex:1;min-width:0}
+  .bottomnav button .ic{font-size:18px;line-height:1}
   .bottomnav button.active{color:var(--yellow)}
   .note{background:#1a1808;border:1px solid #3a3208;color:#e6d98f;font-size:12.5px;padding:10px 12px;border-radius:12px;margin-bottom:14px}
   .empty{color:var(--muted);text-align:center;padding:30px 10px}
@@ -195,8 +155,7 @@
   <div id="whoStep"><div class="who" id="whoList"></div></div>
   <div id="pinPad" class="hidden">
     <div class="avatar" id="pinAvatar" style="margin:0 auto 10px;width:52px;height:52px;font-size:18px"></div>
-    <h3 id="pinName"></h3>
-    <p id="pinRole"></p>
+    <h3 id="pinName"></h3><p id="pinRole"></p>
     <div class="pindots"><div class="pindot"></div><div class="pindot"></div><div class="pindot"></div><div class="pindot"></div></div>
     <div class="err" id="pinErr"></div>
     <div class="keys" id="keys"></div>
@@ -206,8 +165,7 @@
 
 <div id="app" class="hidden">
   <div class="topbar">
-    <div class="logomark" id="topLogo"></div>
-    <div class="spacer"></div>
+    <div class="logomark" id="topLogo"></div><div class="spacer"></div>
     <button class="iconbtn hidden" id="gearBtn" title="Ajustes">⚙</button>
     <div class="userchip"><div class="avatar" id="uAvatar"></div><span id="uName"></span><span class="roletag" id="uRole"></span></div>
     <button class="iconbtn" id="logoutBtn" title="Salir">⏻</button>
@@ -215,163 +173,141 @@
   <main id="view"></main>
   <div class="bottomnav hidden" id="nav"></div>
 </div>
-
 <div id="modalRoot"></div>
 
 <script>
-/* ===================== DEPOAPP v3 — DepoFilms ===================== */
+/* ================= DEPOAPP v4 — todo editable ================= */
+function logoSVG(s){s=s||30;return `<svg width="${s}" height="${s}" viewBox="0 0 48 48" fill="none">
+<rect x="4" y="16" width="40" height="26" rx="4" fill="#141414" stroke="#ffd21e" stroke-width="2.5"/>
+<path d="M6 16 L14 8 L20 8 L12 16 Z" fill="#ffd21e"/><path d="M18 16 L26 8 L32 8 L24 16 Z" fill="#f2f2f2"/>
+<path d="M30 16 L38 8 L44 8 L36 16 Z" fill="#ffd21e"/><circle cx="24" cy="30" r="6" fill="none" stroke="#f2f2f2" stroke-width="2"/>
+<path d="M22 27 L28 30 L22 33 Z" fill="#ffd21e"/></svg>`}
+function logoFull(px){return `${logoSVG(px||30)}<span class="logotext" style="font-size:${(px||30)*.72}px">Depo<b>App</b></span>`}
 
-function logoSVG(size){
-  const s=size||30;
-  return `<svg width="${s}" height="${s}" viewBox="0 0 48 48" fill="none">
-    <rect x="4" y="16" width="40" height="26" rx="4" fill="#141414" stroke="#ffd21e" stroke-width="2.5"/>
-    <path d="M6 16 L14 8 L20 8 L12 16 Z" fill="#ffd21e"/>
-    <path d="M18 16 L26 8 L32 8 L24 16 Z" fill="#f2f2f2"/>
-    <path d="M30 16 L38 8 L44 8 L36 16 Z" fill="#ffd21e"/>
-    <circle cx="24" cy="30" r="6" fill="none" stroke="#f2f2f2" stroke-width="2"/>
-    <path d="M22 27 L28 30 L22 33 Z" fill="#ffd21e"/></svg>`;
-}
-function logoFull(px){return `${logoSVG(px||30)}<span class="logotext" style="font-size:${(px||30)*0.72}px">Depo<b>App</b></span>`;}
-
-const BOSS_PIN_DEFAULT="2026";
-
-/* ===== NOTIFICACIONES PUSH (OneSignal) — Fase 3 =====
-   Pegá acá tu App ID de OneSignal. Vacío = notificaciones desactivadas. */
 const ONESIGNAL_APP_ID="";
 window.OneSignalDeferred=window.OneSignalDeferred||[];
-function initPush(){ if(!ONESIGNAL_APP_ID)return; window.OneSignalDeferred.push(async function(OneSignal){ try{ await OneSignal.init({appId:ONESIGNAL_APP_ID, allowLocalhostAsSecureOrigin:true}); }catch(e){} }); }
-/* Identifica el celu con el id del empleado → el push le llega SOLO a él */
-function pushLoginEmpleado(empId){ if(!ONESIGNAL_APP_ID)return; window.OneSignalDeferred.push(function(OneSignal){ try{OneSignal.login(empId);}catch(e){} }); }
-function pushLogout(){ if(!ONESIGNAL_APP_ID)return; window.OneSignalDeferred.push(function(OneSignal){ try{OneSignal.logout();}catch(e){} }); }
-function pedirPermisoPush(){ if(!ONESIGNAL_APP_ID){alert("Todavía falta configurar OneSignal (Fase 3): pegá tu App ID en el código y publicá la app.");return;} window.OneSignalDeferred.push(function(OneSignal){ try{OneSignal.Notifications.requestPermission();}catch(e){} }); }
+function initPush(){if(!ONESIGNAL_APP_ID)return;window.OneSignalDeferred.push(async function(O){try{await O.init({appId:ONESIGNAL_APP_ID,allowLocalhostAsSecureOrigin:true})}catch(e){}})}
+function pushLoginEmpleado(id){if(!ONESIGNAL_APP_ID)return;window.OneSignalDeferred.push(function(O){try{O.login(id)}catch(e){}})}
+function pushLogout(){if(!ONESIGNAL_APP_ID)return;window.OneSignalDeferred.push(function(O){try{O.logout()}catch(e){}})}
+function pedirPermisoPush(){if(!ONESIGNAL_APP_ID){alert("Falta configurar OneSignal: pegá tu App ID y publicá la app.");return}window.OneSignalDeferred.push(function(O){try{O.Notifications.requestPermission()}catch(e){}})}
 
-const EMPLEADOS = [
-  {id:"enzo",  nombre:"Enzo Nuñez",      transporte:"Uber / Micro",        partidos2026:51},
-  {id:"facu",  nombre:"Facundo Chaves",  transporte:"Moto",                partidos2026:48},
-  {id:"santi", nombre:"Santino Aguilar", transporte:"Micro / Uber",        partidos2026:48},
-  {id:"agus",  nombre:"Agustín Ansuini", transporte:"Micro / Uber",        partidos2026:47},
-  {id:"luca",  nombre:"Luca Dominguez",  transporte:"Bici / Micro / Uber", partidos2026:45},
-  {id:"dana",  nombre:"Dana Sosa",       transporte:"Micro / Uber",        partidos2026:26},
-  {id:"giu",   nombre:"Giuliana Vargas", transporte:"Micro / Uber",        partidos2026:14, foto:true},
+/* ---------- DATOS INICIALES (todos editables desde la app) ---------- */
+const EMPLEADOS_DEF=[
+  {id:"enzo",  nombre:"Enzo Nuñez",      transporte:"Uber / Micro",        activo:true, roles:{camara:true,editor:false,redes:false,foto:false}},
+  {id:"facu",  nombre:"Facundo Chaves",  transporte:"Moto",                activo:true, roles:{camara:true,editor:false,redes:false,foto:false}},
+  {id:"santi", nombre:"Santino Aguilar", transporte:"Micro / Uber",        activo:true, roles:{camara:true,editor:true, redes:false,foto:false}},
+  {id:"agus",  nombre:"Agustín Ansuini", transporte:"Micro / Uber",        activo:true, roles:{camara:true,editor:false,redes:false,foto:false}, viajeReal:true},
+  {id:"luca",  nombre:"Luca Dominguez",  transporte:"Bici / Micro / Uber", activo:true, roles:{camara:true,editor:true, redes:false,foto:false}},
+  {id:"dana",  nombre:"Dana Sosa",       transporte:"Micro / Uber",        activo:true, roles:{camara:true,editor:false,redes:true, foto:false}},
+  {id:"giu",   nombre:"Giuliana Vargas", transporte:"Micro / Uber",        activo:true, roles:{camara:false,editor:false,redes:false,foto:true}},
 ];
-const JEFE={id:"jefe", nombre:"Gastón"};
-const TARIFAS_DEF={fijoMensual:50000, porPartido:6000, extraEdicion:3000};
+const JEFE={id:"jefe",nombre:"Gastón"};
+
+/* Tarifas: TODAS editables desde Ajustes */
+const TARIFAS_DEF={
+  porPartido:18000,      // camarógrafo, por partido
+  fotoPorSesion:20000,   // fotógrafa, por sesión
+  viatico:50000,         // fijo mensual, todos
+  editor:50000,          // plus mensual por rol editor
+  redes:50000,           // plus mensual por rol redes
+  comisionPct:10,        // % de lo que paga el 2º equipo, para quien lo cierra
+  viajeAgustin:80000     // reembolso real de viajes
+};
+/* Config comercial: porcentajes, editables */
+const CONFIG_DEF={ aumentoPct:15, compartidoPct:70, descuentoAbonoPct:10 };
 
 const CLUBES_DEF=[
-  {club:"COP", deporte:"Futsal", estado:"ACTIVO", pago:"Mensual", contacto:"Marcelo", cats:[
-    {cat:"Primera A / Premium", precio:45000, edi:true,  local:"Local", cancha:"COP"},
-    {cat:"Primera B / Serie B", precio:40000, edi:true,  local:"Local", cancha:"COP"},
-    {cat:"Seniors / Plata",     precio:40000, edi:false, local:"Local", cancha:"COP"},
-    {cat:"Veteranos / Plata",   precio:40000, edi:false, local:"Local", cancha:"COP"}]},
-  {club:"Alianza G.", deporte:"Futsal", estado:"ACTIVO", pago:"Mensual", contacto:"Jugadores", cats:[
-    {cat:"Primera A / Serie A", precio:38000, edi:false, local:"Local y visitante", cancha:"POLIGUAY"},
-    {cat:"Primera B / Serie A", precio:38000, edi:false, local:"Local y visitante", cancha:"POLIGUAY"},
-    {cat:"C20A / Oro",          precio:40000, edi:false, local:"Local y visitante", cancha:"POLIGUAY"},
-    {cat:"C20B / Bronce",       precio:40000, edi:false, local:"Local y visitante", cancha:"POLIGUAY"}]},
-  {club:"Murialdo", deporte:"Futsal", estado:"ACTIVO", pago:"Mensual", contacto:"Jugadores", cats:[
-    {cat:"Femenino / Serie A",  precio:38000, edi:false, local:"Local", cancha:"Murialdo"},
-    {cat:"Primera / Serie B",   precio:38000, edi:true,  local:"Local", cancha:"Murialdo"}]},
-  {club:"San Luis Gonzaga", deporte:"Futsal", estado:"ACTIVO", pago:"Mensual", contacto:"Nico Persico", cats:[
-    {cat:"Primera A / Serie B", precio:45000, edi:true,  local:"Local y visitante", cancha:"—"}]},
-  {club:"Banco Mendoza", deporte:"Futsal", estado:"ACTIVO", pago:"Mensual", contacto:"Juanjo", cats:[
-    {cat:"Primera A / Serie B", precio:48000, edi:true,  local:"Local", cancha:"Banco Mendoza"},
-    {cat:"C20 / Bronce",        precio:48000, edi:false, local:"Local", cancha:"Banco Mendoza"}]},
-  {club:"Cerede", deporte:"Futsal", estado:"ACTIVO", pago:"Mensual", contacto:"Nicolás", cats:[
-    {cat:"Primera A / Serie A", precio:48000, edi:true,  local:"Local", cancha:"Cerede"}]},
-  {club:"Pacífico", deporte:"Futsal", estado:"ACTIVO", pago:"Mensual", contacto:"Bruno", cats:[
-    {cat:"Primera B / Serie B", precio:48000, edi:false, local:"Local", cancha:"Pacífico"}]},
-  {club:"U. Champagnat", deporte:"Futsal", estado:"ACTIVO", pago:"Mensual", contacto:"Matías", cats:[
-    {cat:"Primera A / Serie B", precio:43000, edi:false, local:"Local", cancha:"U. Champagnat"}]},
-  {club:"UNC", deporte:"Futsal", estado:"ACTIVO", pago:"Mensual", contacto:"Lucas Bazán", cats:[
-    {cat:"Primera A / Serie A", precio:43000, edi:false, local:"Local", cancha:"UNC"}]},
-  {club:"IMPSA", deporte:"Futsal", estado:"ACTIVO", pago:"Partido a partido", contacto:"—", cats:[
-    {cat:"Primera A / Serie B", precio:38000, edi:false, local:"Local", cancha:"—"},
-    {cat:"C20 / Bronce",        precio:38000, edi:false, local:"Local", cancha:"—"}]},
-  {club:"Banco Nación", deporte:"Futsal", estado:"ACTIVO", pago:"Mensual", contacto:"—", cats:[
-    {cat:"Primera A / Premium", precio:45000, edi:false, local:"Local", cancha:"Banco Nación"}]},
-  {club:"Alemán", deporte:"Futsal", estado:"ACTIVO", pago:"Mensual", contacto:"Nahuel Parada", cats:[
-    {cat:"FSP Masculino", precio:43000, edi:true, local:"Local", cancha:"Alemán"},
-    {cat:"Primera Fem",   precio:43000, edi:true, local:"Local", cancha:"Alemán"}]},
-  {club:"San José", deporte:"Futsal", estado:"ACTIVO", pago:"Partido a partido", contacto:"Cande", cats:[
-    {cat:"Primera Fem / Premium", precio:48000, edi:false, local:"Local", cancha:"Ceferino Namuncura"}]},
-  {club:"Coquimbito", deporte:"Futsal", estado:"ACTIVO", pago:"Partido a partido", contacto:"—", cats:[
-    {cat:"Serie A", precio:38000, edi:false, local:"Local y visitante", cancha:"—"}]},
-  {club:"GYE", deporte:"Futsal", estado:"RIESGO", pago:"Partido a partido", contacto:"Ariel", cats:[
-    {cat:"Primera B / Serie B", precio:48000, edi:true, local:"Local", cancha:"GYE"},
-    {cat:"Veteranos / Plata",   precio:48000, edi:true, local:"Local", cancha:"GYE"}]},
-  {club:"Colonia", deporte:"Futsal", estado:"INACTIVO", pago:"Partido a partido", contacto:"Jugadores", cats:[
-    {cat:"Primera A / Premium", precio:55000, edi:true, local:"Local", cancha:"Colonia"},
-    {cat:"Primera B / Serie B", precio:55000, edi:true, local:"Local", cancha:"Colonia"}]},
-  {club:"Regatas", deporte:"Futsal", estado:"INACTIVO", pago:"Mensual", contacto:"Pablo Longo", cats:[
-    {cat:"Primera A / Premium", precio:43000, edi:false, local:"Local", cancha:"Regatas Parque"}]},
-  {club:"CSIR", deporte:"Futsal", estado:"INACTIVO", pago:"Mensual", contacto:"Mixto", cats:[
-    {cat:"Primera A / Premium", precio:55000, edi:true, local:"Local", cancha:"CSIR"},
-    {cat:"Femenino / Serie A",  precio:55000, edi:true, local:"Local", cancha:"CSIR"}]},
-  {club:"Vialidad", deporte:"Futsal", estado:"INACTIVO", pago:"Mensual", contacto:"Luca Bota", cats:[
-    {cat:"C17 / Plata", precio:38000, edi:false, local:"Local", cancha:"—"},
-    {cat:"C20 / Plata", precio:38000, edi:false, local:"Local", cancha:"—"}]},
-  {club:"Mendoza Rugby", deporte:"Rugby", estado:"ACTIVO", pago:"Partido a partido", contacto:"—", cats:[
-    {cat:"Primera",   precio:50000, edi:false, local:"Local", cancha:"Mendoza Rugby"},
-    {cat:"Intermedia",precio:50000, edi:false, local:"Local", cancha:"Mendoza Rugby"}]},
-  {club:"Teque", deporte:"Rugby", estado:"ACTIVO", pago:"Partido a partido", contacto:"—", cats:[
-    {cat:"Primera", precio:50000, edi:false, local:"Local", cancha:"—"}]},
-  {club:"Argentino", deporte:"F11", estado:"ACTIVO", pago:"Partido a partido", contacto:"—", cats:[
-    {cat:"Primera", precio:52000, edi:false, local:"Local", cancha:"—"},
-    {cat:"C20",     precio:52000, edi:false, local:"Local", cancha:"—"}]},
+  {club:"COP",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Marcelo",comparte:true,cats:[
+    {cat:"Primera A / Premium",precio:45000,edi:true,local:"Local",cancha:"COP"},
+    {cat:"Primera B / Serie B",precio:40000,edi:true,local:"Local",cancha:"COP"},
+    {cat:"Seniors / Plata",precio:40000,edi:false,local:"Local",cancha:"COP"},
+    {cat:"Veteranos / Plata",precio:40000,edi:false,local:"Local",cancha:"COP"}]},
+  {club:"Alianza G.",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Jugadores",comparte:true,cats:[
+    {cat:"Primera A / Serie A",precio:38000,edi:false,local:"Local y visitante",cancha:"POLIGUAY"},
+    {cat:"Primera B / Serie A",precio:38000,edi:false,local:"Local y visitante",cancha:"POLIGUAY"},
+    {cat:"C20A / Oro",precio:40000,edi:false,local:"Local y visitante",cancha:"POLIGUAY"},
+    {cat:"C20B / Bronce",precio:40000,edi:false,local:"Local y visitante",cancha:"POLIGUAY"}]},
+  {club:"Murialdo",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Jugadores",comparte:true,cats:[
+    {cat:"Femenino / Serie A",precio:38000,edi:false,local:"Local",cancha:"Murialdo"},
+    {cat:"Primera / Serie B",precio:38000,edi:true,local:"Local",cancha:"Murialdo"}]},
+  {club:"San Luis Gonzaga",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Nico Persico",comparte:false,cats:[
+    {cat:"Primera A / Serie B",precio:45000,edi:true,local:"Local y visitante",cancha:"—"}]},
+  {club:"Banco Mendoza",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Juanjo",comparte:false,cats:[
+    {cat:"Primera A / Serie B",precio:48000,edi:true,local:"Local",cancha:"Banco Mendoza"},
+    {cat:"C20 / Bronce",precio:48000,edi:false,local:"Local",cancha:"Banco Mendoza"}]},
+  {club:"Cerede",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Nicolás",comparte:false,cats:[
+    {cat:"Primera A / Serie A",precio:48000,edi:true,local:"Local",cancha:"Cerede"}]},
+  {club:"Pacífico",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Bruno",comparte:false,cats:[
+    {cat:"Primera B / Serie B",precio:48000,edi:false,local:"Local",cancha:"Pacífico"}]},
+  {club:"U. Champagnat",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Matías",comparte:false,cats:[
+    {cat:"Primera A / Serie B",precio:43000,edi:false,local:"Local",cancha:"U. Champagnat"}]},
+  {club:"UNC",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Lucas Bazán",comparte:false,cats:[
+    {cat:"Primera A / Serie A",precio:43000,edi:false,local:"Local",cancha:"UNC"}]},
+  {club:"IMPSA",deporte:"Futsal",estado:"ACTIVO",pago:"Partido a partido",contacto:"—",comparte:false,cats:[
+    {cat:"Primera A / Serie B",precio:38000,edi:false,local:"Local",cancha:"—"},
+    {cat:"C20 / Bronce",precio:38000,edi:false,local:"Local",cancha:"—"}]},
+  {club:"Banco Nación",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"—",comparte:false,cats:[
+    {cat:"Primera A / Premium",precio:45000,edi:false,local:"Local",cancha:"Banco Nación"}]},
+  {club:"Alemán",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Nahuel Parada",comparte:false,cats:[
+    {cat:"FSP Masculino",precio:43000,edi:true,local:"Local",cancha:"Alemán"},
+    {cat:"Primera Fem",precio:43000,edi:true,local:"Local",cancha:"Alemán"}]},
+  {club:"San José",deporte:"Futsal",estado:"ACTIVO",pago:"Partido a partido",contacto:"Cande",comparte:false,cats:[
+    {cat:"Primera Fem / Premium",precio:48000,edi:false,local:"Local",cancha:"Ceferino Namuncura"}]},
+  {club:"Coquimbito",deporte:"Futsal",estado:"ACTIVO",pago:"Partido a partido",contacto:"—",comparte:false,cats:[
+    {cat:"Serie A",precio:38000,edi:false,local:"Local y visitante",cancha:"—"}]},
+  {club:"GYE",deporte:"Futsal",estado:"RIESGO",pago:"Partido a partido",contacto:"Ariel",comparte:false,cats:[
+    {cat:"Primera B / Serie B",precio:48000,edi:true,local:"Local",cancha:"GYE"},
+    {cat:"Veteranos / Plata",precio:48000,edi:true,local:"Local",cancha:"GYE"}]},
+  {club:"Mendoza Rugby",deporte:"Rugby",estado:"ACTIVO",pago:"Partido a partido",contacto:"—",comparte:false,cats:[
+    {cat:"Primera",precio:50000,edi:false,local:"Local",cancha:"Mendoza Rugby"},
+    {cat:"Intermedia",precio:50000,edi:false,local:"Local",cancha:"Mendoza Rugby"}]},
+  {club:"Teque",deporte:"Rugby",estado:"ACTIVO",pago:"Partido a partido",contacto:"—",comparte:false,cats:[
+    {cat:"Primera",precio:50000,edi:false,local:"Local",cancha:"—"}]},
+  {club:"Argentino",deporte:"F11",estado:"ACTIVO",pago:"Partido a partido",contacto:"—",comparte:false,cats:[
+    {cat:"Primera",precio:52000,edi:false,local:"Local",cancha:"—"},
+    {cat:"C20",precio:52000,edi:false,local:"Local",cancha:"—"}]},
 ];
 
 const PARTIDOS_DEF=[
-  {fecha:"2026-07-15",hora:"21:00",cancha:"POLIGUAY",club:"Alianza G.",cat:"Primera A / Serie A",emp:"facu",edi:false,estado:"prox",precio:38000,nuevo:true},
-  {fecha:"2026-07-16",hora:"22:00",cancha:"Murialdo",club:"Murialdo",cat:"Femenino / Serie A",emp:"dana",edi:false,estado:"prox",precio:38000,nuevo:true},
-  {fecha:"2026-07-16",hora:"21:00",cancha:"COP",club:"COP",cat:"Primera A / Premium",emp:"luca",edi:true,estado:"prox",precio:45000,nuevo:true},
-  {fecha:"2026-07-17",hora:"20:30",cancha:"Banco Nación",club:"Banco Nación",cat:"Primera A / Premium",emp:"enzo",edi:false,estado:"prox",precio:45000,nuevo:true},
-  {fecha:"2026-07-17",hora:"21:30",cancha:"Alemán",club:"Alemán",cat:"FSP Masculino",emp:"santi",edi:true,estado:"prox",precio:43000,nuevo:true},
-  {fecha:"2026-07-18",hora:"19:00",cancha:"Pacífico",club:"Pacífico",cat:"Primera B / Serie B",emp:"agus",edi:false,estado:"prox",precio:48000,nuevo:true},
-  {fecha:"2026-07-19",hora:"11:00",cancha:"Cerede",club:"Cerede",cat:"Primera A / Serie A",emp:"luca",edi:true,estado:"prox",precio:48000,nuevo:true},
-  {fecha:"2026-07-19",hora:"13:00",cancha:"POLIGUAY",club:"Alianza G.",cat:"C20A / Oro",emp:"facu",edi:false,estado:"prox",precio:40000,nuevo:true},
-  {fecha:"2026-07-12",hora:"21:00",cancha:"COP",club:"COP",cat:"Veteranos / Plata",emp:"luca",edi:false,estado:"entreg",precio:40000},
-  {fecha:"2026-07-11",hora:"20:00",cancha:"Ceferino Namuncura",club:"San José",cat:"Primera Fem / Premium",emp:"santi",edi:false,estado:"film",precio:48000},
-  {fecha:"2026-07-11",hora:"22:00",cancha:"Murialdo",club:"Murialdo",cat:"Primera / Serie B",emp:"dana",edi:true,estado:"entreg",precio:38000},
-  {fecha:"2026-07-10",hora:"21:00",cancha:"Banco Nación",club:"Banco Nación",cat:"Primera A / Premium",emp:"enzo",edi:false,estado:"entreg",precio:45000},
+  {fecha:"2026-07-15",hora:"21:00",cancha:"POLIGUAY",club:"Alianza G.",cat:"Primera A / Serie A",emp:"facu",edi:false,estado:"prox",precio:38000,nuevo:true,pagado:false,club2:"",precio2:0,cerro:""},
+  {fecha:"2026-07-16",hora:"22:00",cancha:"Murialdo",club:"Murialdo",cat:"Femenino / Serie A",emp:"dana",edi:false,estado:"prox",precio:38000,nuevo:true,pagado:false,club2:"",precio2:0,cerro:""},
+  {fecha:"2026-07-16",hora:"21:00",cancha:"COP",club:"COP",cat:"Primera A / Premium",emp:"luca",edi:true,estado:"prox",precio:45000,nuevo:true,pagado:true,club2:"",precio2:0,cerro:""},
+  {fecha:"2026-07-17",hora:"20:30",cancha:"Banco Nación",club:"Banco Nación",cat:"Primera A / Premium",emp:"enzo",edi:false,estado:"prox",precio:45000,nuevo:true,pagado:false,club2:"",precio2:0,cerro:""},
+  {fecha:"2026-07-17",hora:"21:30",cancha:"Alemán",club:"Alemán",cat:"FSP Masculino",emp:"santi",edi:true,estado:"prox",precio:43000,nuevo:true,pagado:true,club2:"",precio2:0,cerro:""},
+  {fecha:"2026-07-18",hora:"19:00",cancha:"Pacífico",club:"Pacífico",cat:"Primera B / Serie B",emp:"agus",edi:false,estado:"prox",precio:48000,nuevo:true,pagado:false,club2:"",precio2:0,cerro:""},
+  {fecha:"2026-07-19",hora:"11:00",cancha:"Cerede",club:"Cerede",cat:"Primera A / Serie A",emp:"luca",edi:true,estado:"prox",precio:48000,nuevo:true,pagado:false,club2:"",precio2:0,cerro:""},
+  {fecha:"2026-07-12",hora:"21:00",cancha:"COP",club:"COP",cat:"Veteranos / Plata",emp:"luca",edi:false,estado:"entreg",precio:40000,pagado:true,club2:"",precio2:0,cerro:""},
+  {fecha:"2026-07-11",hora:"22:00",cancha:"Murialdo",club:"Murialdo",cat:"Primera / Serie B",emp:"dana",edi:true,estado:"entreg",precio:38000,pagado:true,club2:"",precio2:0,cerro:""},
 ];
 
 const MOVIMIENTOS_DEF=[
-  {id:1, fecha:"2026-03-08", tipo:"INGRESO", concepto:"Cobros filmación marzo", categoria:"Cobro filmación", monto:4381082},
-  {id:2, fecha:"2026-03-25", tipo:"EGRESO",  concepto:"Sueldos marzo", categoria:"Sueldos", monto:2100000},
-  {id:3, fecha:"2026-03-28", tipo:"EGRESO",  concepto:"Retiro socio marzo", categoria:"Retiro socio", monto:600000},
-  {id:4, fecha:"2026-03-30", tipo:"EGRESO",  concepto:"Traslados y varios", categoria:"Traslados", monto:170791},
-  {id:5, fecha:"2026-04-10", tipo:"INGRESO", concepto:"Cobros filmación abril", categoria:"Cobro filmación", monto:2027631},
-  {id:6, fecha:"2026-04-26", tipo:"EGRESO",  concepto:"Sueldos abril", categoria:"Sueldos", monto:1700000},
-  {id:7, fecha:"2026-04-28", tipo:"EGRESO",  concepto:"Retiro socio abril", categoria:"Retiro socio", monto:300000},
-  {id:8, fecha:"2026-04-30", tipo:"EGRESO",  concepto:"Impuestos y cargas", categoria:"Impuestos y cargas", monto:147651},
-  {id:9, fecha:"2026-05-09", tipo:"INGRESO", concepto:"Cobros filmación mayo", categoria:"Cobro filmación", monto:2012724},
-  {id:10,fecha:"2026-05-25", tipo:"EGRESO",  concepto:"Sueldos mayo", categoria:"Sueldos", monto:1650000},
-  {id:11,fecha:"2026-05-28", tipo:"EGRESO",  concepto:"Retiro socio mayo", categoria:"Retiro socio", monto:300000},
-  {id:12,fecha:"2026-05-30", tipo:"EGRESO",  concepto:"Otros gastos mayo", categoria:"Otros", monto:136928},
-  {id:13,fecha:"2026-06-10", tipo:"INGRESO", concepto:"Cobros filmación junio", categoria:"Cobro filmación", monto:1811703},
-  {id:14,fecha:"2026-06-25", tipo:"EGRESO",  concepto:"Sueldos junio", categoria:"Sueldos", monto:1250000},
-  {id:15,fecha:"2026-06-28", tipo:"EGRESO",  concepto:"Retiro socio junio", categoria:"Retiro socio", monto:298704},
+  {id:1,fecha:"2026-06-10",tipo:"INGRESO",concepto:"Cobros filmación junio",categoria:"Cobro filmación",monto:1811703},
+  {id:2,fecha:"2026-06-25",tipo:"EGRESO",concepto:"Sueldos junio",categoria:"Sueldos",monto:1250000},
+  {id:3,fecha:"2026-06-28",tipo:"EGRESO",concepto:"Retiro socio junio",categoria:"Retiro socio",monto:298704},
+  {id:4,fecha:"2026-07-05",tipo:"EGRESO",concepto:"Monotributo",categoria:"Impuestos y cargas",monto:50000},
+  {id:5,fecha:"2026-07-05",tipo:"EGRESO",concepto:"CapCut + Google",categoria:"Software",monto:25350},
 ];
 
 const OBJETIVOS_DEF=[
-  {id:1,titulo:"Bajar la mora de junio a menos del 20%",detalle:"Cobrar deudas atrasadas. Junio está en 43%.",plazo:"2026-07-31",done:false,para:["jefe"]},
-  {id:2,titulo:"Sumar 3 clubes nuevos a la cartera",detalle:"Prospectar y cerrar 3 clubes mensuales.",plazo:"2026-08-31",done:false,para:["todos"]},
-  {id:3,titulo:"Confirmar asignaciones antes del lunes 12hs",detalle:"Responder OK/CAMBIO a tiempo.",plazo:"2026-07-20",done:false,para:["todos"]},
-  {id:4,titulo:"Mejorar encuadre en canchas nuevas",detalle:"Prueba de plano y audio antes de arrancar.",plazo:"2026-07-25",done:false,para:["santi","luca"]},
-  {id:5,titulo:"Entregar fotos de River en 24hs",detalle:"Editar y mandar el mismo día.",plazo:"2026-07-22",done:false,para:["giu"]},
+  {id:1,titulo:"Cobrar el 95% de lo facturado",detalle:"Sin pago no hay entrega.",plazo:"2026-08-31",done:false,para:["jefe"]},
+  {id:2,titulo:"Aplicar la nueva lista de precios",detalle:"+15% sobre el precio actual de cada club.",plazo:"2026-08-05",done:false,para:["jefe"]},
+  {id:3,titulo:"Ofrecer el partido compartido al rival",detalle:"Si el club autoriza, ofrecerlo siempre.",plazo:"2026-08-31",done:false,para:["todos"]},
+  {id:4,titulo:"Confirmar asignaciones antes del lunes 12hs",detalle:"Responder OK/CAMBIO a tiempo.",plazo:"2026-07-27",done:false,para:["todos"]},
 ];
 
 /* ===================== PERSISTENCIA ===================== */
-const LS_KEY="depoapp_v3";
+const LS_KEY="depoapp_v4";
 function loadState(){
-  let s; try{s=JSON.parse(localStorage.getItem(LS_KEY))||{}}catch(e){s={}}
-  return {
+  let s;try{s=JSON.parse(localStorage.getItem(LS_KEY))||{}}catch(e){s={}}
+  return{
+    empleados:s.empleados||structuredClone(EMPLEADOS_DEF),
     clubes:s.clubes||structuredClone(CLUBES_DEF),
-    objetivos:s.objetivos||structuredClone(OBJETIVOS_DEF),
     partidos:s.partidos||structuredClone(PARTIDOS_DEF),
     movimientos:s.movimientos||structuredClone(MOVIMIENTOS_DEF),
-    tarifas:s.tarifas||structuredClone(TARIFAS_DEF),
-    pins:s.pins||{jefe:BOSS_PIN_DEFAULT},
+    objetivos:s.objetivos||structuredClone(OBJETIVOS_DEF),
+    tarifas:Object.assign(structuredClone(TARIFAS_DEF),s.tarifas||{}),
+    config:Object.assign(structuredClone(CONFIG_DEF),s.config||{}),
+    pins:s.pins||{jefe:"2026"},
   };
 }
 function saveState(){localStorage.setItem(LS_KEY,JSON.stringify(ST))}
@@ -379,56 +315,71 @@ let ST=loadState();
 
 /* ===================== HELPERS ===================== */
 const $=(s,r=document)=>r.querySelector(s);
-const money=n=>"$"+Math.round(n).toLocaleString("es-AR");
+const money=n=>"$"+Math.round(n||0).toLocaleString("es-AR");
 const initials=n=>n.split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase();
-const empById=id=>id==="jefe"?JEFE:EMPLEADOS.find(e=>e.id===id);
+const empById=id=>id==="jefe"?JEFE:ST.empleados.find(e=>e.id===id);
 const MESN=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
-const TODAY=new Date("2026-07-15T00:00:00");
-function fdShort(iso){const d=new Date(iso+"T00:00:00");return {d:d.getDate(),m:MESN[d.getMonth()]}}
+const TODAY=new Date("2026-07-20T00:00:00");
+function fdShort(iso){const d=new Date(iso+"T00:00:00");return{d:d.getDate(),m:MESN[d.getMonth()]}}
 function fdLong(iso){const d=new Date(iso+"T00:00:00");return d.getDate()+" "+MESN[d.getMonth()]}
-function plazoClass(iso,done){if(done)return"ok";const diff=(new Date(iso+"T00:00:00")-TODAY)/864e5;return diff<0?"late":diff<=7?"warn":"ok"}
-function plazoTxt(iso,done){const diff=Math.round((new Date(iso+"T00:00:00")-TODAY)/864e5);if(done)return"✓ Completado";if(diff<0)return"Vencido hace "+(-diff)+"d";if(diff===0)return"Vence hoy";return"Vence en "+diff+"d · "+fdLong(iso)}
-let idc=1000; const uid=()=>++idc;
+function plazoClass(iso,done){if(done)return"ok";const df=(new Date(iso+"T00:00:00")-TODAY)/864e5;return df<0?"late":df<=7?"warn":"ok"}
+function plazoTxt(iso,done){const df=Math.round((new Date(iso+"T00:00:00")-TODAY)/864e5);if(done)return"✓ Completado";if(df<0)return"Vencido hace "+(-df)+"d";if(df===0)return"Vence hoy";return"Vence en "+df+"d · "+fdLong(iso)}
+let idc=1000;const uid=()=>++idc;
+const pctCompartido=p=>Math.round(p*ST.config.compartidoPct/100);
+const conAumento=p=>Math.round(p*(1+ST.config.aumentoPct/100));
+
+/* Total que entra por un partido (incluye 2º equipo si lo hay) */
+const totalPartido=p=>(+p.precio||0)+(+p.precio2||0);
 
 function computeFin(){
-  let totIng=0,totEgr=0; const pm={}, pc={};
+  let ing=0,egr=0;const pm={},pc={};
   ST.movimientos.forEach(m=>{
-    const v=+m.monto||0; const d=new Date(m.fecha+"T00:00:00");
+    const v=+m.monto||0,d=new Date(m.fecha+"T00:00:00");
     const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
     pm[k]=pm[k]||{ing:0,egr:0};
-    if(m.tipo==="INGRESO"){totIng+=v;pm[k].ing+=v;}
-    else{totEgr+=v;pm[k].egr+=v;pc[m.categoria]=(pc[m.categoria]||0)+v;}
+    if(m.tipo==="INGRESO"){ing+=v;pm[k].ing+=v}else{egr+=v;pm[k].egr+=v;pc[m.categoria]=(pc[m.categoria]||0)+v}
   });
-  const meses=Object.keys(pm).sort().map(k=>({key:k,label:MESN[+k.split("-")[1]-1],...pm[k]}));
-  const cats=Object.entries(pc).map(([cat,val])=>({cat,val})).sort((a,b)=>b.val-a.val);
-  return {totIng,totEgr,totNeto:totIng-totEgr,meses,cats};
+  return{totIng:ing,totEgr:egr,totNeto:ing-egr,
+    meses:Object.keys(pm).sort().map(k=>({label:MESN[+k.split("-")[1]-1],...pm[k]})),
+    cats:Object.entries(pc).map(([cat,val])=>({cat,val})).sort((a,b)=>b.val-a.val)}
+}
+/* Liquidación de un empleado en el mes */
+function liquidacion(empId,ym){
+  ym=ym||"2026-07";
+  const e=empById(empId),t=ST.tarifas;
+  const mios=ST.partidos.filter(p=>p.emp===empId&&p.fecha.startsWith(ym));
+  const esFoto=e.roles&&e.roles.foto;
+  const porPartido=esFoto?t.fotoPorSesion:t.porPartido;
+  const base=mios.length*porPartido;
+  const viatico=e.viajeReal?(+t.viajeAgustin||0):(+t.viatico||0);
+  const plusEditor=(e.roles&&e.roles.editor)?(+t.editor||0):0;
+  const plusRedes=(e.roles&&e.roles.redes)?(+t.redes||0):0;
+  const cerrados=ST.partidos.filter(p=>p.cerro===empId&&p.fecha.startsWith(ym));
+  const comision=cerrados.reduce((a,p)=>a+(+p.precio2||0)*ST.tarifas.comisionPct/100,0);
+  return{partidos:mios.length,base,viatico,plusEditor,plusRedes,comision:Math.round(comision),
+    total:base+viatico+plusEditor+plusRedes+Math.round(comision)}
 }
 
-/* ===================== SESIÓN ===================== */
-let SESSION=null;
-
-/* ===================== LOGIN ===================== */
+/* ===================== SESIÓN / LOGIN ===================== */
+let SESSION=null,pinBuf="",pinTarget=null,pinMode="enter",pinFirst="";
 function renderWho(){
   $("#loginLogo").innerHTML=logoFull(38);
   const list=$("#whoList");list.innerHTML="";
-  EMPLEADOS.forEach(e=>{
+  ST.empleados.filter(e=>e.activo!==false).forEach(e=>{
     const b=document.createElement("button");
     b.innerHTML=`<div class="avatar">${initials(e.nombre)}</div><span>${e.nombre.split(" ")[0]}</span><small>${ST.pins[e.id]?'Empleado':'Crear PIN'}</small>`;
-    b.onclick=()=>startPin(e,"empleado");list.appendChild(b);
-  });
+    b.onclick=()=>startPin(e,"empleado");list.appendChild(b)});
   const boss=document.createElement("button");boss.className="boss";
   boss.innerHTML=`<div class="avatar">👑</div><span style="font-size:16px">Gastón</span>`;
   boss.onclick=()=>startPin(JEFE,"jefe");list.appendChild(boss);
 }
-let pinBuf="",pinTarget=null,pinMode="enter",pinFirst="";
 function startPin(emp,role){
   pinTarget={emp,role};pinBuf="";pinFirst="";
-  const hasPin = role==="jefe" ? true : !!ST.pins[emp.id];
-  pinMode = hasPin ? "enter" : "create";
+  pinMode=(role==="jefe"||ST.pins[emp.id])?"enter":"create";
   $("#whoStep").classList.add("hidden");$("#pinPad").classList.remove("hidden");
   $("#pinAvatar").textContent=role==="jefe"?"👑":initials(emp.nombre);
   $("#pinName").textContent=emp.nombre;
-  $("#pinRole").textContent = pinMode==="create" ? "Creá tu PIN de 4 dígitos" : (role==="jefe"?"PIN de jefe":"Ingresá tu PIN");
+  $("#pinRole").textContent=pinMode==="create"?"Creá tu PIN de 4 dígitos":(role==="jefe"?"PIN de jefe":"Ingresá tu PIN");
   $("#pinErr").textContent="";updateDots();
 }
 function updateDots(){document.querySelectorAll(".pindot").forEach((d,i)=>d.classList.toggle("on",i<pinBuf.length))}
@@ -437,92 +388,88 @@ function renderKeys(){
   ["1","2","3","4","5","6","7","8","9","⌫","0","✓"].forEach(key=>{
     const b=document.createElement("button");b.textContent=key;if(key==="⌫"||key==="✓")b.classList.add("wide");
     b.onclick=()=>{if(key==="⌫")pinBuf=pinBuf.slice(0,-1);else if(key==="✓"){submitPin();return}else if(pinBuf.length<4)pinBuf+=key;
-      updateDots();if(pinBuf.length===4)setTimeout(submitPin,150)};
-    k.appendChild(b);
-  });
+      updateDots();if(pinBuf.length===4)setTimeout(submitPin,150)};k.appendChild(b)})
 }
 function submitPin(){
   if(pinBuf.length<4)return;
   if(pinMode==="create"){
-    if(!pinFirst){pinFirst=pinBuf;pinBuf="";updateDots();$("#pinRole").textContent="Repetí el PIN para confirmar";return;}
-    if(pinBuf===pinFirst){ST.pins[pinTarget.emp.id]=pinBuf;saveState();SESSION={emp:pinTarget.emp,role:"empleado"};enterApp();}
-    else{$("#pinErr").textContent="No coincide, empezá de nuevo";pinFirst="";pinBuf="";updateDots();$("#pinRole").textContent="Creá tu PIN de 4 dígitos";}
-    return;
-  }
-  const good = pinTarget.role==="jefe" ? pinBuf===ST.pins.jefe : pinBuf===ST.pins[pinTarget.emp.id];
-  if(good){SESSION={emp:pinTarget.emp,role:pinTarget.role};enterApp();}
-  else{$("#pinErr").textContent="PIN incorrecto";pinBuf="";updateDots();}
+    if(!pinFirst){pinFirst=pinBuf;pinBuf="";updateDots();$("#pinRole").textContent="Repetí el PIN";return}
+    if(pinBuf===pinFirst){ST.pins[pinTarget.emp.id]=pinBuf;saveState();SESSION={emp:pinTarget.emp,role:"empleado"};enterApp()}
+    else{$("#pinErr").textContent="No coincide";pinFirst="";pinBuf="";updateDots();$("#pinRole").textContent="Creá tu PIN de 4 dígitos"}
+    return}
+  const ok=pinTarget.role==="jefe"?pinBuf===ST.pins.jefe:pinBuf===ST.pins[pinTarget.emp.id];
+  if(ok){SESSION={emp:pinTarget.emp,role:pinTarget.role};enterApp()}
+  else{$("#pinErr").textContent="PIN incorrecto";pinBuf="";updateDots()}
 }
-$("#backWho").onclick=()=>{$("#pinPad").classList.add("hidden");$("#whoStep").classList.remove("hidden");renderWho();};
+$("#backWho").onclick=()=>{$("#pinPad").classList.add("hidden");$("#whoStep").classList.remove("hidden");renderWho()};
 
 /* ===================== SHELL ===================== */
-let CURRENT_TAB=null;
-const TABS_JEFE=[{id:"resumen",ic:"📊",label:"Resumen"},{id:"finanzas",ic:"📈",label:"Finanzas"},
-  {id:"clientes",ic:"🏆",label:"Clientes"},{id:"asignaciones",ic:"🎥",label:"Asignaciones"},{id:"objetivos",ic:"🎯",label:"Objetivos"}];
+const TABS=[{id:"resumen",ic:"📊",label:"Resumen"},{id:"finanzas",ic:"📈",label:"Finanzas"},
+  {id:"clientes",ic:"🏆",label:"Clientes"},{id:"asignaciones",ic:"🎥",label:"Partidos"},
+  {id:"equipo",ic:"👥",label:"Equipo"},{id:"objetivos",ic:"🎯",label:"Objetivos"}];
 function enterApp(){
   $("#login").classList.add("hidden");$("#app").classList.remove("hidden");
   $("#topLogo").innerHTML=logoFull(26);
   $("#uAvatar").textContent=SESSION.role==="jefe"?"👑":initials(SESSION.emp.nombre);
   $("#uName").textContent=SESSION.emp.nombre.split(" ")[0];
-  const rt=$("#uRole");rt.textContent=SESSION.role==="jefe"?"Jefe":"Empleado";rt.className="roletag "+(SESSION.role==="jefe"?"":"emp");
+  const rt=$("#uRole");rt.textContent=SESSION.role==="jefe"?"Jefe":"Empleado";
+  rt.className="roletag "+(SESSION.role==="jefe"?"":"emp");
   $("#gearBtn").classList.toggle("hidden",SESSION.role!=="jefe");
-  if(SESSION.role==="jefe"){buildNav();$("#nav").classList.remove("hidden");go("resumen");}
-  else{pushLoginEmpleado(SESSION.emp.id);$("#nav").classList.add("hidden");viewPerfil($("#view"));}
+  if(SESSION.role==="jefe"){buildNav();$("#nav").classList.remove("hidden");go("resumen")}
+  else{pushLoginEmpleado(SESSION.emp.id);$("#nav").classList.add("hidden");viewPerfil($("#view"))}
 }
-function buildNav(){
-  const nav=$("#nav");nav.innerHTML="";
-  TABS_JEFE.forEach(t=>{const b=document.createElement("button");b.innerHTML=`<span class="ic">${t.ic}</span><span>${t.label}</span>`;
-    b.dataset.tab=t.id;b.onclick=()=>go(t.id);nav.appendChild(b);});
-}
+function buildNav(){const nav=$("#nav");nav.innerHTML="";
+  TABS.forEach(t=>{const b=document.createElement("button");b.innerHTML=`<span class="ic">${t.ic}</span><span>${t.label}</span>`;
+    b.dataset.tab=t.id;b.onclick=()=>go(t.id);nav.appendChild(b)})}
 function go(tab){
-  CURRENT_TAB=tab;document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
   const v=$("#view");v.innerHTML="";window.scrollTo(0,0);
-  ({resumen:viewResumen,finanzas:viewFinanzas,clientes:viewClientes,asignaciones:viewAsignaciones,objetivos:viewObjetivos})[tab](v);
+  ({resumen:viewResumen,finanzas:viewFinanzas,clientes:viewClientes,asignaciones:viewAsignaciones,equipo:viewEquipo,objetivos:viewObjetivos})[tab](v)
 }
-$("#logoutBtn").onclick=()=>{pushLogout();SESSION=null;$("#app").classList.add("hidden");$("#login").classList.remove("hidden");$("#pinPad").classList.add("hidden");$("#whoStep").classList.remove("hidden");renderWho();};
+$("#logoutBtn").onclick=()=>{pushLogout();SESSION=null;$("#app").classList.add("hidden");$("#login").classList.remove("hidden");$("#pinPad").classList.add("hidden");$("#whoStep").classList.remove("hidden");renderWho()};
 $("#gearBtn").onclick=ajustesModal;
 
-/* ===================== EMPLEADO: PERFIL + ALERTAS ===================== */
-function cobroEmpleado(empId){
-  const t=ST.tarifas;
-  const mine=ST.partidos.filter(p=>p.emp===empId&&p.fecha>="2026-07-01"&&p.fecha<="2026-07-31");
-  const conEdi=mine.filter(p=>p.edi).length;
-  return {mesPartidos:mine.length,conEdi,total:t.fijoMensual+mine.length*t.porPartido+conEdi*t.extraEdicion,t};
-}
+/* ===================== EMPLEADO ===================== */
 function matchCard(p){
   const f=fdShort(p.fecha);
   const est={prox:["prox","Próximo"],film:["film","Filmado"],entreg:["entreg","Entregado"]}[p.estado];
   return `<div class="match ${p.nuevo?'nuevo':''}"><div class="day"><div class="d">${f.d}</div><div class="m">${f.m}</div></div>
-    <div class="info"><div class="club">${p.club} <span style="color:var(--muted);font-weight:500">· ${p.cat}</span></div>
-      <div class="meta">🕘 ${p.hora} · 📍 ${p.cancha}</div></div>
-    <div class="right">${p.nuevo?'<span class="pill nuevo">🔔 NUEVO</span><br>':''}<div class="pill ${est[0]}" style="margin-top:${p.nuevo?'6px':'0'}">${est[1]}</div><br>
-      <span class="pill ${p.edi?'edi':'noedi'}" style="margin-top:6px">${p.edi?'CON EDI':'SIN EDI'}</span></div></div>`;
+  <div class="info"><div class="club">${p.club} <span style="color:var(--muted);font-weight:500">· ${p.cat}</span></div>
+  <div class="meta">🕘 ${p.hora} · 📍 ${p.cancha}${p.club2?' · 🤝 compartido con '+p.club2:''}</div></div>
+  <div class="right">${p.nuevo?'<span class="pill nuevo">🔔 NUEVO</span><br>':''}<div class="pill ${est[0]}" style="margin-top:${p.nuevo?'6px':'0'}">${est[1]}</div><br>
+  <span class="pill ${p.edi?'edi':'noedi'}" style="margin-top:6px">${p.edi?'CON EDI':'SIN EDI'}</span></div></div>`
 }
 function viewPerfil(v){
-  const e=SESSION.emp,c=cobroEmpleado(e.id);
+  const e=SESSION.emp,L=liquidacion(e.id);
   const mine=ST.partidos.filter(p=>p.emp===e.id).sort((a,b)=>a.fecha<b.fecha?-1:1);
-  const prox=mine.filter(p=>p.estado==="prox");
-  const hechos=mine.filter(p=>p.estado!=="prox").reverse();
+  const prox=mine.filter(p=>p.estado==="prox"),hechos=mine.filter(p=>p.estado!=="prox").reverse();
   const nuevos=mine.filter(p=>p.nuevo).length;
   const objs=ST.objetivos.filter(o=>o.para.includes("todos")||o.para.includes(e.id));
-  v.innerHTML=`
-    <div class="phead"><div class="big">${initials(e.nombre)}</div>
-      <div><div class="n">${e.nombre}</div><div class="r">🎥 Camarógrafo · ${e.transporte}</div></div></div>
-    ${nuevos?`<div class="alertbanner">🔔 Tenés <b style="color:var(--yellow)">&nbsp;${nuevos} novedad(es)&nbsp;</b> en tus partidos <button class="btn sm x" id="verVisto">Marcar como visto</button></div>`:''}
+  v.innerHTML=`<div class="phead"><div class="big">${initials(e.nombre)}</div>
+    <div><div class="n">${e.nombre}</div><div class="r">${e.transporte||''}</div></div></div>
+    ${nuevos?`<div class="alertbanner">🔔 Tenés <b style="color:var(--yellow)">&nbsp;${nuevos} novedad(es)&nbsp;</b> en tus partidos <button class="btn sm x" id="verVisto">Visto</button></div>`:''}
     <div class="grid kpis" style="margin-top:14px">
-      <div class="kpi"><div class="lbl">A cobrar (jul)</div><div class="val gold">${money(c.total)}</div><div class="sub">estimado</div></div>
-      <div class="kpi"><div class="lbl">Partidos del mes</div><div class="val">${c.mesPartidos}</div><div class="sub">${c.conEdi} con edición</div></div>
-      <div class="kpi"><div class="lbl">Filmados</div><div class="val">${hechos.length}</div><div class="sub">registro app</div></div>
-      <div class="kpi"><div class="lbl">Total 2026</div><div class="val">${e.partidos2026}</div><div class="sub">partidos</div></div>
-    </div>
+      <div class="kpi"><div class="lbl">A cobrar (julio)</div><div class="val gold">${money(L.total)}</div><div class="sub">estimado</div></div>
+      <div class="kpi"><div class="lbl">Partidos del mes</div><div class="val">${L.partidos}</div></div>
+      <div class="kpi"><div class="lbl">Comisiones</div><div class="val">${money(L.comision)}</div><div class="sub">2º equipo</div></div>
+      <div class="kpi"><div class="lbl">Próximos</div><div class="val">${prox.length}</div></div></div>
+    <div class="card" style="margin-top:14px"><div class="sectitle" style="margin-top:0">Cómo se compone</div>
+      <table><tbody>
+        <tr><td>${L.partidos} × valor por partido</td><td class="num">${money(L.base)}</td></tr>
+        <tr><td>Viático fijo</td><td class="num">${money(L.viatico)}</td></tr>
+        ${L.plusEditor?`<tr><td>Plus edición</td><td class="num">${money(L.plusEditor)}</td></tr>`:''}
+        ${L.plusRedes?`<tr><td>Plus redes</td><td class="num">${money(L.plusRedes)}</td></tr>`:''}
+        ${L.comision?`<tr><td>Comisiones 2º equipo</td><td class="num">${money(L.comision)}</td></tr>`:''}
+        <tr><td><b>Total</b></td><td class="num" style="color:var(--yellow)"><b>${money(L.total)}</b></td></tr>
+      </tbody></table></div>
     <div class="sectitle">Mis próximos partidos (${prox.length})</div>
     <div>${prox.length?prox.map(matchCard).join(""):'<div class="empty">Sin partidos próximos</div>'}</div>
-    <div class="sectitle">Mis objetivos (${objs.filter(o=>o.done).length}/${objs.length})</div>
-    <div>${objs.length?objs.map(o=>objCard(o,false)).join(""):'<div class="empty">Sin objetivos asignados</div>'}</div>
-    <div class="sectitle">Historial reciente</div>
+    <div class="sectitle">Mis objetivos</div>
+    <div>${objs.length?objs.map(o=>objCard(o,false)).join(""):'<div class="empty">Sin objetivos</div>'}</div>
+    <div class="sectitle">Historial</div>
     <div>${hechos.length?hechos.slice(0,8).map(matchCard).join(""):'<div class="empty">—</div>'}</div>
     <div style="text-align:center;margin-top:18px"><button class="btn sm" id="actNotif">🔔 Activar notificaciones</button> <button class="btn ghost sm" id="chgPin">Cambiar mi PIN</button></div>`;
-  const vv=$("#verVisto");if(vv)vv.onclick=()=>{ST.partidos.forEach(p=>{if(p.emp===e.id)p.nuevo=false;});saveState();viewPerfil(v);};
+  const vv=$("#verVisto");if(vv)vv.onclick=()=>{ST.partidos.forEach(p=>{if(p.emp===e.id)p.nuevo=false});saveState();viewPerfil(v)};
   $("#actNotif").onclick=pedirPermisoPush;
   $("#chgPin").onclick=()=>changePinModal(e.id);
 }
@@ -530,318 +477,369 @@ function viewPerfil(v){
 /* ===================== OBJETIVOS ===================== */
 function objCard(o,admin){
   const quien=o.para.includes("todos")?"Todo el equipo":o.para.map(id=>empById(id)?empById(id).nombre.split(" ")[0]:id).join(", ");
-  return `<div class="obj ${o.done?'done':''}">
-    <div class="chk" data-obj="${o.id}">${o.done?'✓':''}</div>
-    <div class="body"><div class="t">${o.titulo}</div><div class="d">${o.detalle}</div>
-      <span class="tag ${plazoClass(o.plazo,o.done)}">${plazoTxt(o.plazo,o.done)}</span>
-      <span class="tag who">👥 ${quien}</span>
-      ${admin?`<span style="float:right"><button class="btn sm ghost" data-eobj="${o.id}">✎</button> <button class="btn sm danger" data-dobj="${o.id}">🗑</button></span>`:''}
-    </div></div>`;
+  return `<div class="obj ${o.done?'done':''}"><div class="chk" data-obj="${o.id}">${o.done?'✓':''}</div>
+  <div class="body"><div class="t">${o.titulo}</div><div class="d">${o.detalle}</div>
+  <span class="tag ${plazoClass(o.plazo,o.done)}">${plazoTxt(o.plazo,o.done)}</span>
+  <span class="tag who">👥 ${quien}</span>
+  ${admin?`<span style="float:right"><button class="btn sm ghost" data-eobj="${o.id}">✎</button> <button class="btn sm danger" data-dobj="${o.id}">🗑</button></span>`:''}
+  </div></div>`
 }
 function viewObjetivos(v){
-  const objs=ST.objetivos;
-  const grupales=objs.filter(o=>o.para.includes("todos"));
-  const individuales=objs.filter(o=>!o.para.includes("todos"));
-  const done=objs.filter(o=>o.done).length;const pct=objs.length?Math.round(done/objs.length*100):0;
-  v.innerHTML=`<div class="pagetitle">Objetivos <small>Grupales para todos · individuales por persona</small></div>
-    <div class="card" style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>Progreso general</span><b>${pct}%</b></div>
-      <div class="progressbar"><div style="width:${pct}%"></div></div></div>
+  const g=ST.objetivos.filter(o=>o.para.includes("todos")),i=ST.objetivos.filter(o=>!o.para.includes("todos"));
+  const done=ST.objetivos.filter(o=>o.done).length,pct=ST.objetivos.length?Math.round(done/ST.objetivos.length*100):0;
+  v.innerHTML=`<div class="pagetitle">Objetivos <small>Grupales e individuales</small></div>
+    <div class="card" style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>Progreso</span><b>${pct}%</b></div>
+    <div class="progressbar"><div style="width:${pct}%"></div></div></div>
     <div class="flexbtns" style="margin-bottom:6px"><button class="btn sm" id="addObj">+ Nuevo objetivo</button></div>
-    <div class="sectitle">👥 Grupales (${grupales.length})</div>
-    <div id="objG">${grupales.length?grupales.map(o=>objCard(o,true)).join(""):'<div class="empty">Sin objetivos grupales</div>'}</div>
-    <div class="sectitle">🙋 Individuales (${individuales.length})</div>
-    <div id="objI">${individuales.length?individuales.map(o=>objCard(o,true)).join(""):'<div class="empty">Sin objetivos individuales</div>'}</div>`;
-  bindObjList(v);
-  $("#addObj").onclick=()=>objModal();
+    <div class="sectitle">👥 Grupales (${g.length})</div><div>${g.length?g.map(o=>objCard(o,true)).join(""):'<div class="empty">—</div>'}</div>
+    <div class="sectitle">🙋 Individuales (${i.length})</div><div>${i.length?i.map(o=>objCard(o,true)).join(""):'<div class="empty">—</div>'}</div>`;
+  bindObj(v);$("#addObj").onclick=()=>objModal();
 }
-function bindObjList(v){
-  v.querySelectorAll(".chk").forEach(c=>c.onclick=()=>{const o=ST.objetivos.find(x=>x.id==c.dataset.obj);o.done=!o.done;saveState();go("objetivos");});
+function bindObj(v){
+  v.querySelectorAll(".chk").forEach(c=>c.onclick=()=>{const o=ST.objetivos.find(x=>x.id==c.dataset.obj);o.done=!o.done;saveState();go("objetivos")});
   v.querySelectorAll("[data-eobj]").forEach(b=>b.onclick=()=>objModal(+b.dataset.eobj));
-  v.querySelectorAll("[data-dobj]").forEach(b=>b.onclick=()=>{if(confirm("¿Borrar objetivo?")){ST.objetivos=ST.objetivos.filter(x=>x.id!=b.dataset.dobj);saveState();go("objetivos");}});
+  v.querySelectorAll("[data-dobj]").forEach(b=>b.onclick=()=>{if(confirm("¿Borrar objetivo?")){ST.objetivos=ST.objetivos.filter(x=>x.id!=b.dataset.dobj);saveState();go("objetivos")}});
 }
 function objModal(id){
-  const o=id?ST.objetivos.find(x=>x.id===id):{titulo:"",detalle:"",plazo:"2026-08-01",para:["todos"]};
-  const nuevo=!id;
-  const opts=[{id:"todos",n:"Todo el equipo (grupal)"},{id:"jefe",n:"Solo yo (Gastón)"},...EMPLEADOS.map(e=>({id:e.id,n:e.nombre}))];
+  const o=id?ST.objetivos.find(x=>x.id===id):{titulo:"",detalle:"",plazo:"2026-08-31",para:["todos"]},nuevo=!id;
+  const opts=[{id:"todos",n:"Todo el equipo"},{id:"jefe",n:"Solo yo (Gastón)"},...ST.empleados.map(e=>({id:e.id,n:e.nombre}))];
   openModal(`<h3>${nuevo?'Nuevo objetivo':'Editar objetivo'}</h3>
-    <div class="field"><label>Título</label><input id="oT" value="${o.titulo}" placeholder="Ej: Sumar 2 clubes nuevos"></div>
-    <div class="field"><label>Detalle</label><input id="oD" value="${o.detalle}" placeholder="Descripción corta"></div>
-    <div class="field"><label>Plazo</label><input id="oP" type="date" value="${o.plazo}"></div>
-    <div class="field"><label>¿Para quién?</label><div id="oWho">${opts.map(op=>`<label class="chkline ${o.para.includes(op.id)?'on':''}"><input type="checkbox" value="${op.id}" ${o.para.includes(op.id)?'checked':''}> ${op.n}</label>`).join("")}</div></div>
-    <div class="flexbtns"><button class="btn" id="oSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`);
-  $("#oWho").querySelectorAll("input").forEach(chk=>chk.onchange=()=>{
-    if(chk.value==="todos"&&chk.checked){$("#oWho").querySelectorAll("input").forEach(x=>{if(x.value!=="todos"){x.checked=false;x.parentElement.classList.remove("on")}});}
-    else if(chk.value!=="todos"&&chk.checked){const t=$("#oWho").querySelector('input[value="todos"]');t.checked=false;t.parentElement.classList.remove("on");}
-    chk.parentElement.classList.toggle("on",chk.checked);
-  });
-  $("#oSave").onclick=()=>{
-    const t=$("#oT").value.trim();if(!t)return;
+  <div class="field"><label>Título</label><input id="oT" value="${o.titulo}"></div>
+  <div class="field"><label>Detalle</label><input id="oD" value="${o.detalle}"></div>
+  <div class="field"><label>Plazo</label><input id="oP" type="date" value="${o.plazo}"></div>
+  <div class="field"><label>¿Para quién?</label><div id="oWho">${opts.map(op=>`<label class="chkline ${o.para.includes(op.id)?'on':''}"><input type="checkbox" value="${op.id}" ${o.para.includes(op.id)?'checked':''}> ${op.n}</label>`).join("")}</div></div>
+  <div class="flexbtns"><button class="btn" id="oSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`);
+  $("#oWho").querySelectorAll("input").forEach(c=>c.onchange=()=>{
+    if(c.value==="todos"&&c.checked)$("#oWho").querySelectorAll("input").forEach(x=>{if(x.value!=="todos"){x.checked=false;x.parentElement.classList.remove("on")}});
+    else if(c.value!=="todos"&&c.checked){const t=$("#oWho").querySelector('input[value="todos"]');t.checked=false;t.parentElement.classList.remove("on")}
+    c.parentElement.classList.toggle("on",c.checked)});
+  $("#oSave").onclick=()=>{const t=$("#oT").value.trim();if(!t)return;
     const para=[...$("#oWho").querySelectorAll("input:checked")].map(x=>x.value);if(!para.length)para.push("todos");
     if(nuevo)ST.objetivos.push({id:uid(),titulo:t,detalle:$("#oD").value.trim(),plazo:$("#oP").value,done:false,para});
     else Object.assign(o,{titulo:t,detalle:$("#oD").value.trim(),plazo:$("#oP").value,para});
-    saveState();closeModal();go("objetivos");
-  };
+    saveState();closeModal();go("objetivos")};
 }
 
 /* ===================== RESUMEN ===================== */
 function viewResumen(v){
-  const F=computeFin();
-  const activos=ST.clubes.filter(c=>c.estado==="ACTIVO").length;
-  const prox=ST.partidos.filter(p=>p.estado==="prox").length;
-  v.innerHTML=`<div class="pagetitle">Resumen ejecutivo <small>DepoFilms · jul 2026</small></div>
+  const F=computeFin(),ym="2026-07";
+  const mes=ST.partidos.filter(p=>p.fecha.startsWith(ym));
+  const fact=mes.reduce((a,p)=>a+totalPartido(p),0);
+  const cobrado=mes.filter(p=>p.pagado).reduce((a,p)=>a+totalPartido(p),0);
+  const pend=fact-cobrado;
+  const compartidos=mes.filter(p=>p.club2).length;
+  const costoEmp=ST.empleados.filter(e=>e.activo!==false).reduce((a,e)=>a+liquidacion(e.id,ym).total,0);
+  v.innerHTML=`<div class="pagetitle">Resumen <small>DepoFilms · julio 2026</small></div>
     <div class="grid kpis">
-      <div class="kpi"><div class="lbl">Ingresos</div><div class="val green">${money(F.totIng)}</div><div class="sub">acumulado</div></div>
-      <div class="kpi"><div class="lbl">Neto</div><div class="val gold">${money(F.totNeto)}</div><div class="sub">ing − egr</div></div>
-      <div class="kpi"><div class="lbl">Clubes activos</div><div class="val">${activos}</div><div class="sub">de ${ST.clubes.length}</div></div>
-      <div class="kpi"><div class="lbl">Partidos próximos</div><div class="val">${prox}</div><div class="sub">esta semana</div></div></div>
-    <div class="card" style="margin-top:16px"><div class="sectitle" style="margin-top:0">Ingresos vs egresos por mes</div><div class="chartbox"><canvas id="cMes"></canvas></div></div>
-    <div class="card" style="margin-top:12px"><div class="sectitle" style="margin-top:0">Carga por empleado (próximos)</div>
-      <div class="tablewrap"><table><thead><tr><th>Empleado</th><th class="num">Próx.</th><th class="num">A cobrar (jul)</th></tr></thead><tbody>
-      ${EMPLEADOS.map(e=>{const n=ST.partidos.filter(p=>p.emp===e.id&&p.estado==="prox").length;return `<tr><td>${e.nombre}</td><td class="num">${n}</td><td class="num" style="color:var(--yellow)">${money(cobroEmpleado(e.id).total)}</td></tr>`;}).join("")}
-      </tbody></table></div></div>`;
+      <div class="kpi"><div class="lbl">Facturado (mes)</div><div class="val">${money(fact)}</div><div class="sub">${mes.length} partidos</div></div>
+      <div class="kpi"><div class="lbl">Cobrado</div><div class="val green">${money(cobrado)}</div><div class="sub">${fact?Math.round(cobrado/fact*100):0}%</div></div>
+      <div class="kpi"><div class="lbl">Pendiente</div><div class="val ${pend>0?'red':''}">${money(pend)}</div><div class="sub">a cobrar</div></div>
+      <div class="kpi"><div class="lbl">Compartidos</div><div class="val gold">${compartidos}</div><div class="sub">de ${mes.length}</div></div></div>
+    <div class="grid kpis" style="margin-top:12px">
+      <div class="kpi"><div class="lbl">Costo equipo</div><div class="val">${money(costoEmp)}</div><div class="sub">liquidación julio</div></div>
+      <div class="kpi"><div class="lbl">Clubes activos</div><div class="val">${ST.clubes.filter(c=>c.estado==="ACTIVO").length}</div></div>
+      <div class="kpi"><div class="lbl">Autorizan compartir</div><div class="val">${ST.clubes.filter(c=>c.comparte).length}</div></div>
+      <div class="kpi"><div class="lbl">Margen estimado</div><div class="val gold">${money(cobrado-costoEmp)}</div></div></div>
+    <div class="card" style="margin-top:16px"><div class="sectitle" style="margin-top:0">Ingresos vs egresos</div><div class="chartbox"><canvas id="cMes"></canvas></div></div>`;
   drawMes("cMes",F);
 }
 
-/* ===================== FINANZAS (planilla editable) ===================== */
+/* ===================== FINANZAS ===================== */
 function viewFinanzas(v){
-  const F=computeFin();
-  const movs=[...ST.movimientos].sort((a,b)=>a.fecha<b.fecha?1:-1);
-  v.innerHTML=`<div class="pagetitle">Finanzas <small>Solo jefe · todo se calcula de esta planilla</small></div>
-    <div class="note">📒 Cargá acá tus ingresos y egresos: los KPIs y gráficos se actualizan solos. (Datos de ejemplo — reemplazalos por los reales.)</div>
+  const F=computeFin(),movs=[...ST.movimientos].sort((a,b)=>a.fecha<b.fecha?1:-1);
+  v.innerHTML=`<div class="pagetitle">Finanzas <small>Todo se calcula de esta planilla</small></div>
     <div class="grid kpis">
       <div class="kpi"><div class="lbl">Ingresos</div><div class="val green">${money(F.totIng)}</div></div>
       <div class="kpi"><div class="lbl">Egresos</div><div class="val red">${money(F.totEgr)}</div></div>
       <div class="kpi"><div class="lbl">Neto</div><div class="val gold">${money(F.totNeto)}</div></div>
       <div class="kpi"><div class="lbl">Movimientos</div><div class="val">${movs.length}</div></div></div>
-    <div class="card" style="margin-top:16px"><div class="sectitle" style="margin-top:0">Resultado neto mensual</div><div class="chartbox"><canvas id="cNeto"></canvas></div></div>
+    <div class="card" style="margin-top:16px"><div class="sectitle" style="margin-top:0">Neto mensual</div><div class="chartbox"><canvas id="cNeto"></canvas></div></div>
     <div class="card" style="margin-top:12px"><div class="sectitle" style="margin-top:0">Egresos por categoría</div><div class="chartbox"><canvas id="cCat"></canvas></div></div>
     <div class="flexbtns" style="margin-top:16px"><button class="btn sm" id="addMov">+ Cargar movimiento</button></div>
     <div class="sectitle">Libro de movimientos</div>
-    <div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th class="num">Monto</th><th></th></tr></thead><tbody>
-    ${movs.map(m=>`<tr class="clk" data-mov="${m.id}"><td>${fdLong(m.fecha)}</td><td>${m.concepto}<br><span class="badge ${m.tipo==='INGRESO'?'ing':'egr'}">${m.tipo}</span></td><td style="font-size:12.5px">${m.categoria}</td><td class="num" style="color:${m.tipo==='INGRESO'?'var(--green)':'var(--red)'}">${m.tipo==='INGRESO'?'+':'−'}${money(m.monto)}</td><td class="num">✎</td></tr>`).join("")}
+    <div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th class="num">Monto</th></tr></thead><tbody>
+    ${movs.map(m=>`<tr class="clk" data-mov="${m.id}"><td>${fdLong(m.fecha)}</td><td>${m.concepto}<br><span class="badge ${m.tipo==='INGRESO'?'ing':'egr'}">${m.tipo}</span></td><td style="font-size:12.5px">${m.categoria}</td><td class="num" style="color:${m.tipo==='INGRESO'?'var(--green)':'var(--red)'}">${m.tipo==='INGRESO'?'+':'−'}${money(m.monto)}</td></tr>`).join("")}
     </tbody></table></div>`;
   drawNeto("cNeto",F);drawCat("cCat",F);
   v.querySelectorAll("[data-mov]").forEach(r=>r.onclick=()=>movModal(+r.dataset.mov));
   $("#addMov").onclick=()=>movModal(null);
 }
-const CATS_EGRESO=["Sueldos","Retiro socio","Cobro filmación","Traslados","Impuestos y cargas","Otros"];
+const CATS_EGRESO=["Sueldos","Retiro socio","Traslados","Impuestos y cargas","Software","Equipo y mantenimiento","Otros"];
 const CATS_INGRESO=["Cobro filmación","Cobro mensual","Fotografía","Otros"];
 function movModal(id){
-  const nuevo=id==null;
-  const m=nuevo?{fecha:"2026-07-15",tipo:"EGRESO",concepto:"",categoria:"Otros",monto:0}:ST.movimientos.find(x=>x.id===id);
+  const nuevo=id==null,m=nuevo?{fecha:"2026-07-20",tipo:"EGRESO",concepto:"",categoria:"Otros",monto:0}:ST.movimientos.find(x=>x.id===id);
   openModal(`<h3>${nuevo?'Cargar movimiento':'Editar movimiento'}</h3>
-    <div class="row2"><div class="field"><label>Fecha</label><input id="mF" type="date" value="${m.fecha}"></div>
-      <div class="field"><label>Tipo</label><select id="mT"><option value="EGRESO" ${m.tipo==='EGRESO'?'selected':''}>Egreso (gasto)</option><option value="INGRESO" ${m.tipo==='INGRESO'?'selected':''}>Ingreso</option></select></div></div>
-    <div class="field"><label>Concepto</label><input id="mC" value="${m.concepto}" placeholder="Ej: Pago video Alianza"></div>
-    <div class="row2"><div class="field"><label>Categoría</label><select id="mCat"></select></div>
-      <div class="field"><label>Monto</label><input id="mM" type="number" value="${m.monto}"></div></div>
-    <div class="flexbtns"><button class="btn" id="mSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button>
-      ${nuevo?'':`<button class="btn danger" id="mDel">Borrar</button>`}</div>`);
-  function fillCats(){const c=$("#mT").value==="INGRESO"?CATS_INGRESO:CATS_EGRESO;$("#mCat").innerHTML=c.map(x=>`<option ${x===m.categoria?'selected':''}>${x}</option>`).join("");}
-  $("#mT").onchange=fillCats; fillCats();
-  $("#mSave").onclick=()=>{
-    const data={fecha:$("#mF").value,tipo:$("#mT").value,concepto:$("#mC").value.trim(),categoria:$("#mCat").value,monto:+$("#mM").value||0};
-    if(!data.concepto){alert("Poné un concepto");return;}
-    if(nuevo)ST.movimientos.push({id:uid(),...data});else Object.assign(m,data);
-    saveState();closeModal();go("finanzas");
-  };
-  if(!nuevo)$("#mDel").onclick=()=>{if(confirm("¿Borrar movimiento?")){ST.movimientos=ST.movimientos.filter(x=>x.id!==id);saveState();closeModal();go("finanzas");}};
+  <div class="row2"><div class="field"><label>Fecha</label><input id="mF" type="date" value="${m.fecha}"></div>
+  <div class="field"><label>Tipo</label><select id="mT"><option value="EGRESO" ${m.tipo==='EGRESO'?'selected':''}>Egreso</option><option value="INGRESO" ${m.tipo==='INGRESO'?'selected':''}>Ingreso</option></select></div></div>
+  <div class="field"><label>Concepto</label><input id="mC" value="${m.concepto}"></div>
+  <div class="row2"><div class="field"><label>Categoría</label><select id="mCat"></select></div>
+  <div class="field"><label>Monto</label><input id="mM" type="number" value="${m.monto}"></div></div>
+  <div class="flexbtns"><button class="btn" id="mSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button>
+  ${nuevo?'':'<button class="btn danger" id="mDel">Borrar</button>'}</div>`);
+  const fill=()=>{const c=$("#mT").value==="INGRESO"?CATS_INGRESO:CATS_EGRESO;$("#mCat").innerHTML=c.map(x=>`<option ${x===m.categoria?'selected':''}>${x}</option>`).join("")};
+  $("#mT").onchange=fill;fill();
+  $("#mSave").onclick=()=>{const d={fecha:$("#mF").value,tipo:$("#mT").value,concepto:$("#mC").value.trim(),categoria:$("#mCat").value,monto:+$("#mM").value||0};
+    if(!d.concepto){alert("Poné un concepto");return}
+    if(nuevo)ST.movimientos.push({id:uid(),...d});else Object.assign(m,d);saveState();closeModal();go("finanzas")};
+  if(!nuevo)$("#mDel").onclick=()=>{if(confirm("¿Borrar?")){ST.movimientos=ST.movimientos.filter(x=>x.id!==id);saveState();closeModal();go("finanzas")}};
 }
 
 /* ===================== CLIENTES ===================== */
 function viewClientes(v){
-  const deportes=[...new Set(ST.clubes.map(c=>c.deporte))];
-  v.innerHTML=`<div class="pagetitle">Clientes <small>${ST.clubes.length} clubes · tocá un club para ver sus categorías y precios</small></div>
-    <div class="note">🎯 Fuente del aviso automático: cada categoría con su precio, edición y si filmamos de local.</div>
-    <div class="flexbtns" style="margin-bottom:12px"><button class="btn sm" id="addClub">+ Sumar club</button></div>
+  const deps=[...new Set(ST.clubes.map(c=>c.deporte))];
+  v.innerHTML=`<div class="pagetitle">Clientes <small>${ST.clubes.length} clubes · precio individual y compartido por categoría</small></div>
+    <div class="note">🤝 "Autoriza compartir" = te dio el OK para ofrecerle el partido al rival sin consultarle cada vez. El precio compartido se calcula al ${ST.config.compartidoPct}% del individual (lo cambiás en Ajustes).</div>
+    <div class="flexbtns" style="margin-bottom:12px"><button class="btn sm" id="addClub">+ Sumar club</button><button class="btn sm ghost" id="aplicarAum">Aplicar +${ST.config.aumentoPct}% a todos</button></div>
     <div id="clubZone"></div>`;
-  const zone=$("#clubZone");
-  deportes.forEach(dep=>{
-    const clubs=ST.clubes.filter(c=>c.deporte===dep).sort((a,b)=>({ACTIVO:0,RIESGO:1,INACTIVO:2}[a.estado]-{ACTIVO:0,RIESGO:1,INACTIVO:2}[b.estado])||a.club.localeCompare(b.club));
-    const h=document.createElement("div");
-    h.innerHTML=`<div class="sectitle">${dep} · ${clubs.length}</div>`+clubs.map(c=>clubCard(c)).join("");
-    zone.appendChild(h);
-  });
-  bindClubs(zone);
+  const z=$("#clubZone");
+  deps.forEach(dep=>{
+    const cs=ST.clubes.filter(c=>c.deporte===dep).sort((a,b)=>({ACTIVO:0,RIESGO:1,INACTIVO:2}[a.estado]-{ACTIVO:0,RIESGO:1,INACTIVO:2}[b.estado])||a.club.localeCompare(b.club));
+    const h=document.createElement("div");h.innerHTML=`<div class="sectitle">${dep} · ${cs.length}</div>`+cs.map(clubCard).join("");z.appendChild(h)});
+  bindClubs(z);
   $("#addClub").onclick=()=>clubModal();
+  $("#aplicarAum").onclick=()=>{
+    if(!confirm(`Esto sube TODOS los precios un ${ST.config.aumentoPct}%. ¿Seguro?`))return;
+    ST.clubes.forEach(c=>c.cats.forEach(ct=>ct.precio=conAumento(ct.precio)));saveState();go("clientes")};
 }
 function clubCard(c){
-  const idx=ST.clubes.indexOf(c);
-  return `<div class="clubcard" data-ci="${idx}">
-    <div class="clubhead"><span class="arw">▶</span>
-      <div class="nm">${c.club} <small>${c.cats.length} cat. · ${c.contacto||'—'}</small></div>
-      <span class="badge ${c.estado.toLowerCase()}">${c.estado}</span></div>
-    <div class="clubbody">
-      <div style="font-size:12px;color:var(--muted);margin:4px 0 6px">${c.pago}</div>
-      ${c.cats.map((ct,ci)=>`<div class="catrow">
-        <div class="cn"><b>${ct.cat}</b><small>${ct.local} · ${ct.edi?'Con edición':'Sin edición'}${ct.cancha&&ct.cancha!=='—'?' · '+ct.cancha:''}</small></div>
-        <div class="pr">${money(ct.precio)}</div>
-        <button class="btn sm ghost" data-ecat="${idx}:${ci}">✎</button></div>`).join("")}
-      <div class="flexbtns" style="margin-top:10px">
-        <button class="btn sm" data-acat="${idx}">+ Categoría</button>
-        <button class="btn sm ghost" data-eclub="${idx}">Editar club</button>
-        <button class="btn sm danger" data-rclub="${idx}">Sacar club</button></div>
-    </div></div>`;
+  const i=ST.clubes.indexOf(c);
+  return `<div class="clubcard" data-ci="${i}"><div class="clubhead"><span class="arw">▶</span>
+  <div class="nm">${c.club} <small>${c.cats.length} cat. · ${c.contacto||'—'} ${c.comparte?'· 🤝 comparte':''}</small></div>
+  <span class="badge ${c.estado.toLowerCase()}">${c.estado}</span></div>
+  <div class="clubbody"><div style="font-size:12px;color:var(--muted);margin:4px 0 6px">${c.pago} · Autoriza compartir: <b style="color:${c.comparte?'var(--green)':'var(--red)'}">${c.comparte?'SÍ':'NO'}</b></div>
+  ${c.cats.map((ct,j)=>`<div class="catrow"><div class="cn"><b>${ct.cat}</b><small>${ct.local} · ${ct.edi?'Con edición':'Sin edición'}${ct.cancha&&ct.cancha!=='—'?' · '+ct.cancha:''}</small></div>
+  <div class="pr">${money(ct.precio)}<small>compartido ${money(pctCompartido(ct.precio))} c/u</small></div>
+  <button class="btn sm ghost" data-ecat="${i}:${j}">✎</button></div>`).join("")}
+  <div class="flexbtns" style="margin-top:10px"><button class="btn sm" data-acat="${i}">+ Categoría</button>
+  <button class="btn sm ghost" data-eclub="${i}">Editar club</button><button class="btn sm danger" data-rclub="${i}">Borrar</button></div></div></div>`
 }
-function bindClubs(zone){
-  zone.querySelectorAll(".clubhead").forEach(h=>h.onclick=()=>h.parentElement.classList.toggle("open"));
-  zone.querySelectorAll("[data-ecat]").forEach(b=>b.onclick=e=>{e.stopPropagation();const[ci,cj]=b.dataset.ecat.split(":").map(Number);catModal(ci,cj);});
-  zone.querySelectorAll("[data-acat]").forEach(b=>b.onclick=()=>catModal(+b.dataset.acat,null));
-  zone.querySelectorAll("[data-eclub]").forEach(b=>b.onclick=()=>clubModal(+b.dataset.eclub));
-  zone.querySelectorAll("[data-rclub]").forEach(b=>b.onclick=()=>{const c=ST.clubes[+b.dataset.rclub];if(confirm("¿Sacar "+c.club+" de la cartera?")){ST.clubes.splice(+b.dataset.rclub,1);saveState();go("clientes");}});
+function bindClubs(z){
+  z.querySelectorAll(".clubhead").forEach(h=>h.onclick=()=>h.parentElement.classList.toggle("open"));
+  z.querySelectorAll("[data-ecat]").forEach(b=>b.onclick=e=>{e.stopPropagation();const[i,j]=b.dataset.ecat.split(":").map(Number);catModal(i,j)});
+  z.querySelectorAll("[data-acat]").forEach(b=>b.onclick=()=>catModal(+b.dataset.acat,null));
+  z.querySelectorAll("[data-eclub]").forEach(b=>b.onclick=()=>clubModal(+b.dataset.eclub));
+  z.querySelectorAll("[data-rclub]").forEach(b=>b.onclick=()=>{const c=ST.clubes[+b.dataset.rclub];if(confirm("¿Borrar "+c.club+"?")){ST.clubes.splice(+b.dataset.rclub,1);saveState();go("clientes")}});
 }
 function clubModal(idx){
-  const nuevo=idx==null;
-  const c=nuevo?{club:"",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"",cats:[]}:ST.clubes[idx];
+  const nuevo=idx==null,c=nuevo?{club:"",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"",comparte:false,cats:[]}:ST.clubes[idx];
   openModal(`<h3>${nuevo?'Sumar club':'Editar '+c.club}</h3>
-    <div class="field"><label>Nombre del club</label><input id="cN" value="${c.club}" placeholder="Ej: Godoy Cruz"></div>
-    <div class="row2">
-      <div class="field"><label>Deporte</label><select id="cD">${["Futsal","Rugby","F11","Otro"].map(x=>`<option ${x===c.deporte?'selected':''}>${x}</option>`).join("")}</select></div>
-      <div class="field"><label>Estado</label><select id="cE">${["ACTIVO","RIESGO","INACTIVO"].map(x=>`<option ${x===c.estado?'selected':''}>${x}</option>`).join("")}</select></div></div>
-    <div class="row2">
-      <div class="field"><label>Tipo de pago</label><select id="cP">${["Mensual","Partido a partido"].map(x=>`<option ${x===c.pago?'selected':''}>${x}</option>`).join("")}</select></div>
-      <div class="field"><label>Contacto</label><input id="cC" value="${c.contacto||''}"></div></div>
-    ${nuevo?'<div class="note">Después de crearlo, abrí el club y agregá sus categorías con el precio de cada una.</div>':''}
-    <div class="flexbtns"><button class="btn" id="cSave">${nuevo?'Sumar':'Guardar'}</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`);
-  $("#cSave").onclick=()=>{
-    const nombre=$("#cN").value.trim();if(!nombre)return;
-    const data={club:nombre,deporte:$("#cD").value,estado:$("#cE").value,pago:$("#cP").value,contacto:$("#cC").value.trim()};
-    if(nuevo)ST.clubes.push({...data,cats:[]});else Object.assign(c,data);
-    saveState();closeModal();go("clientes");
-  };
+  <div class="field"><label>Nombre</label><input id="cN" value="${c.club}"></div>
+  <div class="row2"><div class="field"><label>Deporte</label><input id="cD" value="${c.deporte}" placeholder="Futsal / Rugby / F11"></div>
+  <div class="field"><label>Estado</label><select id="cE">${["ACTIVO","RIESGO","INACTIVO"].map(x=>`<option ${x===c.estado?'selected':''}>${x}</option>`).join("")}</select></div></div>
+  <div class="row2"><div class="field"><label>Tipo de pago</label><select id="cP">${["Mensual","Partido a partido"].map(x=>`<option ${x===c.pago?'selected':''}>${x}</option>`).join("")}</select></div>
+  <div class="field"><label>Contacto</label><input id="cC" value="${c.contacto||''}"></div></div>
+  <label class="chkline ${c.comparte?'on':''}"><input type="checkbox" id="cComp" ${c.comparte?'checked':''}> 🤝 Autoriza ofrecer el partido al rival</label>
+  <div class="flexbtns" style="margin-top:12px"><button class="btn" id="cSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`);
+  $("#cComp").onchange=e=>e.target.parentElement.classList.toggle("on",e.target.checked);
+  $("#cSave").onclick=()=>{const n=$("#cN").value.trim();if(!n)return;
+    const d={club:n,deporte:$("#cD").value.trim()||"Futsal",estado:$("#cE").value,pago:$("#cP").value,contacto:$("#cC").value.trim(),comparte:$("#cComp").checked};
+    if(nuevo)ST.clubes.push({...d,cats:[]});else Object.assign(c,d);saveState();closeModal();go("clientes")};
 }
-function catModal(ci,cj){
-  const club=ST.clubes[ci];const nuevo=cj==null;
-  const ct=nuevo?{cat:"",precio:club.cats[0]?club.cats[0].precio:45000,edi:false,local:"Local",cancha:""}:club.cats[cj];
+function catModal(i,j){
+  const club=ST.clubes[i],nuevo=j==null;
+  const ct=nuevo?{cat:"",precio:club.cats[0]?club.cats[0].precio:45000,edi:false,local:"Local",cancha:""}:club.cats[j];
   openModal(`<h3>${nuevo?'Nueva categoría · '+club.club:'Editar categoría'}</h3>
-    <div class="field"><label>Categoría / división</label><input id="tN" value="${ct.cat}" placeholder="Ej: Primera A / Serie B"></div>
-    <div class="row2">
-      <div class="field"><label>Precio (esta categoría)</label><input id="tP" type="number" value="${ct.precio}"></div>
-      <div class="field"><label>Edición</label><select id="tE"><option value="no" ${!ct.edi?'selected':''}>Sin edición</option><option value="si" ${ct.edi?'selected':''}>Con edición</option></select></div></div>
-    <div class="row2">
-      <div class="field"><label>Filmamos</label><select id="tL">${["Local","Local y visitante"].map(x=>`<option ${x===ct.local?'selected':''}>${x}</option>`).join("")}</select></div>
-      <div class="field"><label>Cancha local</label><input id="tC" value="${ct.cancha||''}" placeholder="Ej: POLIGUAY"></div></div>
-    <div class="flexbtns"><button class="btn" id="tSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button>
-      ${nuevo?'':`<button class="btn danger" id="tDel">Borrar categoría</button>`}</div>`);
-  $("#tSave").onclick=()=>{
-    const nm=$("#tN").value.trim();if(!nm)return;
-    const data={cat:nm,precio:+$("#tP").value,edi:$("#tE").value==="si",local:$("#tL").value,cancha:$("#tC").value.trim()};
-    if(nuevo)club.cats.push(data);else Object.assign(ct,data);
-    saveState();closeModal();go("clientes");
-  };
-  if(!nuevo)$("#tDel").onclick=()=>{club.cats.splice(cj,1);saveState();closeModal();go("clientes");};
+  <div class="field"><label>Categoría</label><input id="tN" value="${ct.cat}"></div>
+  <div class="row2"><div class="field"><label>Precio individual</label><input id="tP" type="number" value="${ct.precio}"></div>
+  <div class="field"><label>Edición</label><select id="tE"><option value="no" ${!ct.edi?'selected':''}>Sin edición</option><option value="si" ${ct.edi?'selected':''}>Con edición</option></select></div></div>
+  <div class="note" id="tInfo">Compartido: ${money(pctCompartido(ct.precio))} cada equipo</div>
+  <div class="row2"><div class="field"><label>Filmamos</label><select id="tL">${["Local","Local y visitante"].map(x=>`<option ${x===ct.local?'selected':''}>${x}</option>`).join("")}</select></div>
+  <div class="field"><label>Cancha</label><input id="tC" value="${ct.cancha||''}"></div></div>
+  <div class="flexbtns"><button class="btn" id="tSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button>
+  ${nuevo?'':'<button class="btn danger" id="tDel">Borrar</button>'}</div>`);
+  $("#tP").oninput=()=>{$("#tInfo").textContent="Compartido: "+money(pctCompartido(+$("#tP").value||0))+" cada equipo"};
+  $("#tSave").onclick=()=>{const n=$("#tN").value.trim();if(!n)return;
+    const d={cat:n,precio:+$("#tP").value,edi:$("#tE").value==="si",local:$("#tL").value,cancha:$("#tC").value.trim()};
+    if(nuevo)club.cats.push(d);else Object.assign(ct,d);saveState();closeModal();go("clientes")};
+  if(!nuevo)$("#tDel").onclick=()=>{club.cats.splice(j,1);saveState();closeModal();go("clientes")};
 }
 
-/* ===================== ASIGNACIONES (planilla) ===================== */
+/* ===================== PARTIDOS ===================== */
 function viewAsignaciones(v){
   const rows=[...ST.partidos].sort((a,b)=>a.fecha<b.fecha?1:-1);
-  v.innerHTML=`<div class="pagetitle">Asignaciones <small>Anotá, asigná, modificá o borrá partidos</small></div>
-    <div class="note">🤖 En vivo se cargarán solos desde Scorify. Al asignar o cambiar un partido, al empleado le aparece una alerta 🔔 en su perfil.</div>
+  const fact=rows.reduce((a,p)=>a+totalPartido(p),0);
+  const cob=rows.filter(p=>p.pagado).reduce((a,p)=>a+totalPartido(p),0);
+  v.innerHTML=`<div class="pagetitle">Partidos <small>Anotá, asigná, marcá pagos y el 2º equipo</small></div>
+    <div class="note">💰 Facturado ${money(fact)} · cobrado ${money(cob)} · <b>pendiente ${money(fact-cob)}</b>. Tocá una fila para editar.</div>
     <div class="flexbtns" style="margin-bottom:12px"><button class="btn sm" id="addP">+ Anotar partido</button></div>
-    <div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Hora</th><th>Club / Cat.</th><th>Cancha</th><th>Empleado</th><th>Edi</th><th>Estado</th></tr></thead><tbody>
-    ${rows.map(p=>{const e=empById(p.emp);const est={prox:"Próximo",film:"Filmado",entreg:"Entregado"}[p.estado];const i=ST.partidos.indexOf(p);
-      return `<tr class="clk" data-ep="${i}"><td>${fdLong(p.fecha)}</td><td>${p.hora}</td><td><b>${p.club}</b><br><span style="color:var(--muted);font-size:12px">${p.cat}</span></td><td style="font-size:12.5px">${p.cancha}</td><td>${e?e.nombre.split(" ")[0]:'<span style="color:var(--red)">Sin asignar</span>'}${p.nuevo?' 🔔':''}</td><td>${p.edi?'<span class="pill edi">SÍ</span>':'<span class="pill noedi">no</span>'}</td><td><span class="pill ${p.estado}">${est}</span></td></tr>`;}).join("")}
+    <div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Club / Cat.</th><th>Empleado</th><th>2º equipo</th><th class="num">Total</th><th>Pago</th></tr></thead><tbody>
+    ${rows.map(p=>{const e=empById(p.emp),i=ST.partidos.indexOf(p);
+      return `<tr class="clk" data-ep="${i}"><td>${fdLong(p.fecha)}<br><span style="color:var(--muted);font-size:11.5px">${p.hora}</span></td>
+      <td><b>${p.club}</b><br><span style="color:var(--muted);font-size:12px">${p.cat}</span></td>
+      <td>${e?e.nombre.split(" ")[0]:'<span style="color:var(--red)">—</span>'}${p.nuevo?' 🔔':''}</td>
+      <td>${p.club2?`<span class="pill comp">${p.club2}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+      <td class="num">${money(totalPartido(p))}</td>
+      <td><span class="badge ${p.pagado?'si':'no'}">${p.pagado?'PAGÓ':'DEBE'}</span></td></tr>`}).join("")}
     </tbody></table></div>`;
   v.querySelectorAll("[data-ep]").forEach(r=>r.onclick=()=>partidoModal(+r.dataset.ep));
   $("#addP").onclick=()=>partidoModal(null);
 }
 function partidoModal(idx){
   const nuevo=idx==null;
-  const p=nuevo?{fecha:"2026-07-18",hora:"21:00",cancha:"",club:"",cat:"",emp:"",edi:false,estado:"prox",precio:0}:ST.partidos[idx];
-  const clubsAct=ST.clubes.filter(c=>c.estado!=="INACTIVO");
+  const p=nuevo?{fecha:"2026-07-25",hora:"21:00",cancha:"",club:"",cat:"",emp:"",edi:false,estado:"prox",precio:0,pagado:false,club2:"",precio2:0,cerro:""}:ST.partidos[idx];
+  const clubs=ST.clubes.filter(c=>c.estado!=="INACTIVO");
   openModal(`<h3>${nuevo?'Anotar partido':'Editar partido'}</h3>
-    <div class="row2"><div class="field"><label>Fecha</label><input id="pF" type="date" value="${p.fecha}"></div>
-      <div class="field"><label>Hora</label><input id="pH" value="${p.hora}" placeholder="21:00"></div></div>
-    <div class="field"><label>Club</label><select id="pClub"><option value="">— elegir —</option>${clubsAct.map(c=>`<option ${c.club===p.club?'selected':''}>${c.club}</option>`).join("")}</select></div>
-    <div class="field"><label>Categoría</label><select id="pCat"></select></div>
-    <div class="row2"><div class="field"><label>Cancha</label><input id="pCancha" value="${p.cancha}"></div>
-      <div class="field"><label>Camarógrafo</label><select id="pEmp"><option value="">Sin asignar</option>${EMPLEADOS.map(e=>`<option value="${e.id}" ${e.id===p.emp?'selected':''}>${e.nombre}</option>`).join("")}</select></div></div>
-    <div class="field"><label>Estado</label><select id="pEst">${[["prox","Próximo"],["film","Filmado"],["entreg","Entregado"]].map(x=>`<option value="${x[0]}" ${x[0]===p.estado?'selected':''}>${x[1]}</option>`).join("")}</select></div>
-    <div class="note" id="pInfo">Elegí club y categoría: precio y edición se completan solos.</div>
-    <div class="flexbtns"><button class="btn" id="pSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button>
-      ${nuevo?'':`<button class="btn danger" id="pDel">Borrar</button>`}</div>`);
+  <div class="row2"><div class="field"><label>Fecha</label><input id="pF" type="date" value="${p.fecha}"></div>
+  <div class="field"><label>Hora</label><input id="pH" value="${p.hora}"></div></div>
+  <div class="field"><label>Club</label><select id="pClub"><option value="">— elegir —</option>${clubs.map(c=>`<option ${c.club===p.club?'selected':''}>${c.club}</option>`).join("")}</select></div>
+  <div class="field"><label>Categoría</label><select id="pCat"></select></div>
+  <div class="row2"><div class="field"><label>Cancha</label><input id="pCancha" value="${p.cancha}"></div>
+  <div class="field"><label>Camarógrafo</label><select id="pEmp"><option value="">Sin asignar</option>${ST.empleados.filter(e=>e.activo!==false).map(e=>`<option value="${e.id}" ${e.id===p.emp?'selected':''}>${e.nombre}</option>`).join("")}</select></div></div>
+  <div class="row2"><div class="field"><label>Precio (club 1)</label><input id="pPrecio" type="number" value="${p.precio}"></div>
+  <div class="field"><label>Estado</label><select id="pEst">${[["prox","Próximo"],["film","Filmado"],["entreg","Entregado"]].map(x=>`<option value="${x[0]}" ${x[0]===p.estado?'selected':''}>${x[1]}</option>`).join("")}</select></div></div>
+  <div class="sectitle" style="margin:14px 0 8px">🤝 Segundo equipo (opcional)</div>
+  <div class="row2"><div class="field"><label>Club rival que también paga</label><input id="pClub2" value="${p.club2||''}" placeholder="Nombre del rival"></div>
+  <div class="field"><label>Precio (club 2)</label><input id="pPrecio2" type="number" value="${p.precio2||0}"></div></div>
+  <div class="field"><label>¿Quién lo cerró? (cobra comisión ${ST.tarifas.comisionPct}%)</label>
+  <select id="pCerro"><option value="">Nadie / lo cerré yo</option>${ST.empleados.map(e=>`<option value="${e.id}" ${e.id===p.cerro?'selected':''}>${e.nombre}</option>`).join("")}</select></div>
+  <label class="chkline ${p.pagado?'on':''}"><input type="checkbox" id="pPag" ${p.pagado?'checked':''}> 💰 Ya pagaron</label>
+  <div class="note" id="pInfo" style="margin-top:10px"></div>
+  <div class="flexbtns"><button class="btn" id="pSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button>
+  ${nuevo?'':'<button class="btn danger" id="pDel">Borrar</button>'}</div>`);
   function fillCats(sel){
-    const club=ST.clubes.find(c=>c.club===$("#pClub").value);
-    const cats=club?club.cats:[];
-    $("#pCat").innerHTML=`<option value="">— elegir —</option>`+cats.map(ct=>`<option ${ct.cat===sel?'selected':''}>${ct.cat}</option>`).join("");
-    syncInfo();
-  }
-  function syncInfo(){
-    const club=ST.clubes.find(c=>c.club===$("#pClub").value);
-    const ct=club&&club.cats.find(x=>x.cat===$("#pCat").value);
-    if(ct){$("#pInfo").innerHTML=`💰 ${money(ct.precio)} · ${ct.edi?'CON edición':'SIN edición'} · ${ct.local}`;
-      if(ct.cancha&&ct.cancha!=='—'&&!$("#pCancha").value)$("#pCancha").value=ct.cancha;}
+    const c=ST.clubes.find(x=>x.club===$("#pClub").value),cats=c?c.cats:[];
+    $("#pCat").innerHTML='<option value="">— elegir —</option>'+cats.map(ct=>`<option ${ct.cat===sel?'selected':''}>${ct.cat}</option>`).join("");
+    sync()}
+  function sync(){
+    const c=ST.clubes.find(x=>x.club===$("#pClub").value);
+    const ct=c&&c.cats.find(x=>x.cat===$("#pCat").value);
+    if(ct){ if(!$("#pPrecio").value||+$("#pPrecio").value===0) $("#pPrecio").value=ct.precio;
+      if(ct.cancha&&ct.cancha!=='—'&&!$("#pCancha").value)$("#pCancha").value=ct.cancha; }
+    const p1=+$("#pPrecio").value||0,p2=+$("#pPrecio2").value||0;
+    const sug=pctCompartido(p1);
+    $("#pInfo").innerHTML=`Total del partido: <b>${money(p1+p2)}</b>`+
+      (c&&c.comparte?` · 🤝 ${c.club} autoriza compartir. Sugerido: ${money(sug)} cada uno.`:(c?` · ⚠️ ${c.club} NO autorizó compartir.`:''));
   }
   $("#pClub").onchange=()=>fillCats(null);
-  $("#pCat").onchange=syncInfo;
+  $("#pCat").onchange=sync;$("#pPrecio").oninput=sync;$("#pPrecio2").oninput=sync;
+  $("#pPag").onchange=e=>e.target.parentElement.classList.toggle("on",e.target.checked);
   fillCats(p.cat);
   $("#pSave").onclick=()=>{
-    const club=ST.clubes.find(c=>c.club===$("#pClub").value);
-    const ct=club&&club.cats.find(x=>x.cat===$("#pCat").value);
-    if(!club||!ct){alert("Elegí club y categoría");return;}
-    const data={fecha:$("#pF").value,hora:$("#pH").value.trim(),cancha:$("#pCancha").value.trim(),club:club.club,cat:ct.cat,emp:$("#pEmp").value,edi:ct.edi,estado:$("#pEst").value,precio:ct.precio,nuevo:true};
-    if(nuevo)ST.partidos.push(data);else Object.assign(p,data);
-    saveState();closeModal();go("asignaciones");
-  };
-  if(!nuevo)$("#pDel").onclick=()=>{if(confirm("¿Borrar partido?")){ST.partidos.splice(idx,1);saveState();closeModal();go("asignaciones");}};
+    const c=ST.clubes.find(x=>x.club===$("#pClub").value);
+    const ct=c&&c.cats.find(x=>x.cat===$("#pCat").value);
+    if(!c||!ct){alert("Elegí club y categoría");return}
+    const d={fecha:$("#pF").value,hora:$("#pH").value.trim(),cancha:$("#pCancha").value.trim(),club:c.club,cat:ct.cat,
+      emp:$("#pEmp").value,edi:ct.edi,estado:$("#pEst").value,precio:+$("#pPrecio").value||0,
+      club2:$("#pClub2").value.trim(),precio2:+$("#pPrecio2").value||0,cerro:$("#pCerro").value,
+      pagado:$("#pPag").checked,nuevo:true};
+    if(nuevo)ST.partidos.push(d);else Object.assign(p,d);
+    saveState();closeModal();go("asignaciones")};
+  if(!nuevo)$("#pDel").onclick=()=>{if(confirm("¿Borrar partido?")){ST.partidos.splice(idx,1);saveState();closeModal();go("asignaciones")}};
+}
+
+/* ===================== EQUIPO ===================== */
+function viewEquipo(v){
+  const ym="2026-07",t=ST.tarifas;
+  const total=ST.empleados.filter(e=>e.activo!==false).reduce((a,e)=>a+liquidacion(e.id,ym).total,0);
+  v.innerHTML=`<div class="pagetitle">Equipo <small>Empleados, roles y liquidación de julio</small></div>
+    <div class="note">💡 Los valores de pago los cambiás en <b>⚙ Ajustes</b>. Acá definís quién hace qué: el rol determina qué plus cobra.</div>
+    <div class="grid kpis"><div class="kpi"><div class="lbl">A pagar (julio)</div><div class="val gold">${money(total)}</div></div>
+      <div class="kpi"><div class="lbl">Activos</div><div class="val">${ST.empleados.filter(e=>e.activo!==false).length}</div></div>
+      <div class="kpi"><div class="lbl">Por partido</div><div class="val">${money(t.porPartido)}</div></div>
+      <div class="kpi"><div class="lbl">Viático</div><div class="val">${money(t.viatico)}</div></div></div>
+    <div class="flexbtns" style="margin:16px 0 8px"><button class="btn sm" id="addEmp">+ Sumar persona</button></div>
+    <div class="tablewrap"><table><thead><tr><th>Persona</th><th>Roles</th><th class="num">Partidos</th><th class="num">A cobrar</th></tr></thead><tbody>
+    ${ST.empleados.map((e,i)=>{const L=liquidacion(e.id,ym);const r=[];
+      if(e.roles&&e.roles.camara)r.push("cámara");if(e.roles&&e.roles.editor)r.push("editor");
+      if(e.roles&&e.roles.redes)r.push("redes");if(e.roles&&e.roles.foto)r.push("fotos");
+      return `<tr class="clk" data-eemp="${i}"><td><b>${e.nombre}</b>${e.activo===false?' <span class="badge inactivo">baja</span>':''}<br><span style="color:var(--muted);font-size:11.5px">${e.transporte||''}${e.viajeReal?' · viajes reales':''}</span></td>
+      <td style="font-size:12px">${r.join(", ")||'—'}</td><td class="num">${L.partidos}</td>
+      <td class="num" style="color:var(--yellow)">${money(L.total)}</td></tr>`}).join("")}
+    </tbody></table></div>`;
+  v.querySelectorAll("[data-eemp]").forEach(r=>r.onclick=()=>empModal(+r.dataset.eemp));
+  $("#addEmp").onclick=()=>empModal(null);
+}
+function empModal(idx){
+  const nuevo=idx==null;
+  const e=nuevo?{id:"",nombre:"",transporte:"",activo:true,roles:{camara:true,editor:false,redes:false,foto:false},viajeReal:false}:ST.empleados[idx];
+  const L=nuevo?null:liquidacion(e.id);
+  openModal(`<h3>${nuevo?'Sumar persona':e.nombre}</h3>
+  <div class="field"><label>Nombre</label><input id="eN" value="${e.nombre}"></div>
+  <div class="field"><label>Transporte</label><input id="eT" value="${e.transporte||''}" placeholder="Moto / Micro / Uber"></div>
+  <div class="sectitle" style="margin:14px 0 8px">Roles (definen qué plus cobra)</div>
+  <label class="chkline ${e.roles.camara?'on':''}"><input type="checkbox" id="rCam" ${e.roles.camara?'checked':''}> 🎥 Camarógrafo — cobra por partido</label>
+  <label class="chkline ${e.roles.editor?'on':''}"><input type="checkbox" id="rEdi" ${e.roles.editor?'checked':''}> ✂️ Editor — plus mensual</label>
+  <label class="chkline ${e.roles.redes?'on':''}"><input type="checkbox" id="rRed" ${e.roles.redes?'checked':''}> 📱 Redes — plus mensual</label>
+  <label class="chkline ${e.roles.foto?'on':''}"><input type="checkbox" id="rFot" ${e.roles.foto?'checked':''}> 📸 Fotografía — cobra por sesión</label>
+  <label class="chkline ${e.viajeReal?'on':''}"><input type="checkbox" id="rVia" ${e.viajeReal?'checked':''}> 🚗 Se le pagan los viajes reales (en vez del viático fijo)</label>
+  <label class="chkline ${e.activo!==false?'on':''}"><input type="checkbox" id="rAct" ${e.activo!==false?'checked':''}> ✅ Activo</label>
+  ${L?`<div class="note" style="margin-top:12px">Julio: ${L.partidos} partidos · base ${money(L.base)} · viático ${money(L.viatico)}${L.plusEditor?' · editor '+money(L.plusEditor):''}${L.plusRedes?' · redes '+money(L.plusRedes):''}${L.comision?' · comisiones '+money(L.comision):''} = <b>${money(L.total)}</b></div>`:''}
+  <div class="flexbtns" style="margin-top:12px"><button class="btn" id="eSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button>
+  ${nuevo?'':'<button class="btn danger" id="eDel">Borrar</button>'}</div>`);
+  ["rCam","rEdi","rRed","rFot","rVia","rAct"].forEach(id=>$("#"+id).onchange=ev=>ev.target.parentElement.classList.toggle("on",ev.target.checked));
+  $("#eSave").onclick=()=>{
+    const n=$("#eN").value.trim();if(!n){alert("Poné el nombre");return}
+    const d={nombre:n,transporte:$("#eT").value.trim(),activo:$("#rAct").checked,viajeReal:$("#rVia").checked,
+      roles:{camara:$("#rCam").checked,editor:$("#rEdi").checked,redes:$("#rRed").checked,foto:$("#rFot").checked}};
+    if(nuevo){const id=n.toLowerCase().replace(/[^a-z]/g,"").slice(0,6)+Math.floor(Math.random()*99);ST.empleados.push({id,...d})}
+    else Object.assign(e,d);
+    saveState();closeModal();go("equipo")};
+  if(!nuevo)$("#eDel").onclick=()=>{if(confirm("¿Borrar a "+e.nombre+"? Se pierden sus datos.")){ST.empleados.splice(idx,1);saveState();closeModal();go("equipo")}};
 }
 
 /* ===================== AJUSTES ===================== */
 function ajustesModal(){
-  const t=ST.tarifas;
+  const t=ST.tarifas,c=ST.config;
   openModal(`<h3>⚙ Ajustes</h3>
-    <div class="sectitle" style="margin-top:0">Tarifas de empleados</div>
-    <div class="row2"><div class="field"><label>Fijo mensual</label><input id="aFijo" type="number" value="${t.fijoMensual}"></div>
-      <div class="field"><label>Por partido</label><input id="aPart" type="number" value="${t.porPartido}"></div></div>
-    <div class="field"><label>Extra por edición</label><input id="aEdi" type="number" value="${t.extraEdicion}"></div>
-    <button class="btn sm" id="aSaveTar">Guardar tarifas</button>
-    <div class="sectitle">Mi PIN (jefe)</div>
-    <button class="btn sm ghost" id="aChgBoss">Cambiar mi PIN</button>
-    <div class="sectitle">PIN de empleados</div>
-    <div id="aPins">${EMPLEADOS.map(e=>`<div class="chkline" style="cursor:default"><span style="flex:1">${e.nombre}</span>
-      <span style="color:${ST.pins[e.id]?'var(--green)':'var(--muted)'};font-size:12px">${ST.pins[e.id]?'PIN activo':'sin PIN'}</span>
-      ${ST.pins[e.id]?`<button class="btn sm danger" data-rpin="${e.id}">Resetear</button>`:''}</div>`).join("")}</div>
-    <div class="flexbtns" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cerrar</button>
-      <button class="btn danger" id="aReset">Restaurar datos de fábrica</button></div>`);
-  $("#aSaveTar").onclick=()=>{ST.tarifas={fijoMensual:+$("#aFijo").value,porPartido:+$("#aPart").value,extraEdicion:+$("#aEdi").value};saveState();$("#aSaveTar").textContent="✓ Guardado";};
-  $("#aChgBoss").onclick=()=>changePinModal("jefe");
-  $("#aPins").querySelectorAll("[data-rpin]").forEach(b=>b.onclick=()=>{if(confirm("¿Resetear PIN de este empleado?")){delete ST.pins[b.dataset.rpin];saveState();ajustesModal();}});
-  $("#aReset").onclick=()=>{if(confirm("¿Borrar TODOS los cambios y volver a los datos originales? (no borra PINs)")){const p=ST.pins;localStorage.removeItem(LS_KEY);ST=loadState();ST.pins=p;saveState();closeModal();go("resumen");}};
+  <div class="sectitle" style="margin-top:0">Cuánto pagás</div>
+  <div class="row2"><div class="field"><label>Por partido (cámara)</label><input id="aPP" type="number" value="${t.porPartido}"></div>
+  <div class="field"><label>Por sesión (fotos)</label><input id="aFot" type="number" value="${t.fotoPorSesion}"></div></div>
+  <div class="row2"><div class="field"><label>Viático fijo mensual</label><input id="aVia" type="number" value="${t.viatico}"></div>
+  <div class="field"><label>Viajes reales (quien aplique)</label><input id="aVR" type="number" value="${t.viajeAgustin}"></div></div>
+  <div class="row2"><div class="field"><label>Plus editor</label><input id="aEd" type="number" value="${t.editor}"></div>
+  <div class="field"><label>Plus redes</label><input id="aRe" type="number" value="${t.redes}"></div></div>
+  <div class="field"><label>Comisión por cerrar 2º equipo (% de lo que paga)</label><input id="aCom" type="number" value="${t.comisionPct}"></div>
+  <div class="sectitle">Porcentajes comerciales</div>
+  <div class="row2"><div class="field"><label>Aumento a aplicar (%)</label><input id="cAum" type="number" value="${c.aumentoPct}"></div>
+  <div class="field"><label>Precio compartido (% del individual)</label><input id="cComp" type="number" value="${c.compartidoPct}"></div></div>
+  <div class="field"><label>Descuento por abono prepago (%)</label><input id="cDesc" type="number" value="${c.descuentoAbonoPct}"></div>
+  <button class="btn sm" id="aSave">Guardar todo</button>
+  <div class="sectitle">PIN</div>
+  <button class="btn sm ghost" id="aChg">Cambiar mi PIN</button>
+  <div id="aPins" style="margin-top:10px">${ST.empleados.map(e=>`<div class="chkline" style="cursor:default"><span style="flex:1">${e.nombre}</span>
+    <span style="color:${ST.pins[e.id]?'var(--green)':'var(--muted)'};font-size:12px">${ST.pins[e.id]?'PIN activo':'sin PIN'}</span>
+    ${ST.pins[e.id]?`<button class="btn sm danger" data-rp="${e.id}">Resetear</button>`:''}</div>`).join("")}</div>
+  <div class="flexbtns" style="margin-top:16px"><button class="btn ghost" onclick="closeModal()">Cerrar</button>
+  <button class="btn danger" id="aReset">Borrar todo y volver al inicio</button></div>`);
+  $("#aSave").onclick=()=>{
+    ST.tarifas={porPartido:+$("#aPP").value||0,fotoPorSesion:+$("#aFot").value||0,viatico:+$("#aVia").value||0,
+      viajeAgustin:+$("#aVR").value||0,editor:+$("#aEd").value||0,redes:+$("#aRe").value||0,comisionPct:+$("#aCom").value||0};
+    ST.config={aumentoPct:+$("#cAum").value||0,compartidoPct:+$("#cComp").value||70,descuentoAbonoPct:+$("#cDesc").value||0};
+    saveState();$("#aSave").textContent="✓ Guardado"};
+  $("#aChg").onclick=()=>changePinModal("jefe");
+  $("#aPins").querySelectorAll("[data-rp]").forEach(b=>b.onclick=()=>{if(confirm("¿Resetear PIN?")){delete ST.pins[b.dataset.rp];saveState();ajustesModal()}});
+  $("#aReset").onclick=()=>{if(confirm("Borra TODO lo cargado y vuelve a los datos iniciales. ¿Seguro?")){const p=ST.pins;localStorage.removeItem(LS_KEY);ST=loadState();ST.pins=p;saveState();closeModal();go("resumen")}};
 }
-function changePinModal(uidTarget){
-  openModal(`<h3>Cambiar PIN</h3>
-    <div class="field"><label>Nuevo PIN (4 dígitos)</label><input id="np1" type="tel" maxlength="4" inputmode="numeric" placeholder="••••"></div>
-    <div class="field"><label>Repetir PIN</label><input id="np2" type="tel" maxlength="4" inputmode="numeric" placeholder="••••"></div>
-    <div class="err" id="npErr"></div>
-    <div class="flexbtns"><button class="btn" id="npSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`);
-  $("#npSave").onclick=()=>{
-    const a=$("#np1").value,b=$("#np2").value;
-    if(!/^\d{4}$/.test(a)){$("#npErr").textContent="El PIN debe tener 4 dígitos";return;}
-    if(a!==b){$("#npErr").textContent="No coinciden";return;}
-    ST.pins[uidTarget]=a;saveState();closeModal();
-  };
+function changePinModal(uidT){
+  openModal(`<h3>Cambiar PIN</h3><div class="field"><label>Nuevo PIN (4 dígitos)</label><input id="np1" type="tel" maxlength="4" inputmode="numeric"></div>
+  <div class="field"><label>Repetir</label><input id="np2" type="tel" maxlength="4" inputmode="numeric"></div><div class="err" id="npE"></div>
+  <div class="flexbtns"><button class="btn" id="npS">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`);
+  $("#npS").onclick=()=>{const a=$("#np1").value,b=$("#np2").value;
+    if(!/^\d{4}$/.test(a)){$("#npE").textContent="Deben ser 4 dígitos";return}
+    if(a!==b){$("#npE").textContent="No coinciden";return}
+    ST.pins[uidT]=a;saveState();closeModal()};
 }
 
 /* ===================== CHARTS ===================== */
 const YEL="#ffd21e",GREEN="#3ecf8e",RED="#ff5c5c",BLUE="#5b9dff",MUT="#8f8f8f";
-Chart.defaults.color=MUT;Chart.defaults.font.family="-apple-system,Segoe UI,Roboto,sans-serif";Chart.defaults.borderColor="#2a2a2a";
-function drawMes(id,F){new Chart($("#"+id),{type:"bar",data:{labels:F.meses.map(m=>m.label),
-  datasets:[{label:"Ingresos",data:F.meses.map(m=>m.ing),backgroundColor:GREEN,borderRadius:5},{label:"Egresos",data:F.meses.map(m=>m.egr),backgroundColor:RED,borderRadius:5}]},options:optM()});}
-function drawNeto(id,F){const n=F.meses.map(m=>m.ing-m.egr);new Chart($("#"+id),{type:"bar",data:{labels:F.meses.map(m=>m.label),datasets:[{label:"Neto",data:n,backgroundColor:n.map(x=>x>=0?GREEN:RED),borderRadius:5}]},options:optM(false)});}
-function drawCat(id,F){if(!F.cats.length){$("#"+id).parentElement.innerHTML='<div class="empty">Sin egresos cargados</div>';return;}
-  new Chart($("#"+id),{type:"doughnut",data:{labels:F.cats.map(c=>c.cat),datasets:[{data:F.cats.map(c=>c.val),backgroundColor:[YEL,"#ffe06b",BLUE,GREEN,RED,MUT,"#c88bff"],borderWidth:0}]},options:{maintainAspectRatio:false,plugins:{legend:{position:"right",labels:{boxWidth:12,font:{size:11}}}}}});}
-function optM(legend=true){return{maintainAspectRatio:false,plugins:{legend:{display:legend,position:"bottom",labels:{boxWidth:12}}},scales:{y:{ticks:{callback:v=>"$"+(v/1e6).toFixed(1)+"M"}}}};}
+Chart.defaults.color=MUT;Chart.defaults.borderColor="#2a2a2a";
+function drawMes(id,F){if(!F.meses.length)return;new Chart($("#"+id),{type:"bar",data:{labels:F.meses.map(m=>m.label),
+  datasets:[{label:"Ingresos",data:F.meses.map(m=>m.ing),backgroundColor:GREEN,borderRadius:5},{label:"Egresos",data:F.meses.map(m=>m.egr),backgroundColor:RED,borderRadius:5}]},options:opt()})}
+function drawNeto(id,F){if(!F.meses.length)return;const n=F.meses.map(m=>m.ing-m.egr);
+  new Chart($("#"+id),{type:"bar",data:{labels:F.meses.map(m=>m.label),datasets:[{label:"Neto",data:n,backgroundColor:n.map(x=>x>=0?GREEN:RED),borderRadius:5}]},options:opt(false)})}
+function drawCat(id,F){if(!F.cats.length){$("#"+id).parentElement.innerHTML='<div class="empty">Sin egresos cargados</div>';return}
+  new Chart($("#"+id),{type:"doughnut",data:{labels:F.cats.map(c=>c.cat),datasets:[{data:F.cats.map(c=>c.val),backgroundColor:[YEL,"#ffe06b",BLUE,GREEN,RED,MUT,"#c88bff"],borderWidth:0}]},
+    options:{maintainAspectRatio:false,plugins:{legend:{position:"right",labels:{boxWidth:12,font:{size:11}}}}}})}
+function opt(leg=true){return{maintainAspectRatio:false,plugins:{legend:{display:leg,position:"bottom",labels:{boxWidth:12}}},
+  scales:{y:{ticks:{callback:v=>"$"+(v/1e6).toFixed(1)+"M"}}}}}
 
 /* ===================== MODAL ===================== */
-function openModal(html){$("#modalRoot").innerHTML=`<div class="modal" onclick="if(event.target===this)closeModal()"><div class="sheet">${html}</div></div>`;}
-function closeModal(){$("#modalRoot").innerHTML="";}
+function openModal(h){$("#modalRoot").innerHTML=`<div class="modal" onclick="if(event.target===this)closeModal()"><div class="sheet">${h}</div></div>`}
+function closeModal(){$("#modalRoot").innerHTML=""}
 
 /* ===================== INIT ===================== */
 renderWho();renderKeys();initPush();
-/* PWA: registrar service worker (solo funciona servido por http/https, no en archivo local) */
-if('serviceWorker' in navigator && location.protocol.startsWith('http')){
-  navigator.serviceWorker.register('sw.js').catch(function(){});
-}
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){navigator.serviceWorker.register('sw.js').catch(function(){})}
 </script>
 </body>
 </html>
