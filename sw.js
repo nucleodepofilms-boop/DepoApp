@@ -1,5 +1,9 @@
-/* DepoApp — Service Worker (Fase 1: instalable + offline; push listo para Fase 3) */
-const CACHE = "depoapp-v3";
+/* DepoApp — Service Worker: instalable + offline + push de OneSignal */
+
+/* OneSignal: se integra acá para no tener dos service workers peleando */
+try { importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDKWorker.js"); } catch (e) {}
+
+const CACHE = "depoapp-v4";
 const ASSETS = ["./DepoApp.html", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", (e) => {
