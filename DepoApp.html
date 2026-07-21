@@ -129,8 +129,7 @@
   .field{margin-bottom:12px}
   .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
   .field input,.field select,.field textarea{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:11px 12px;border-radius:10px}
-  .row2{display:grid;grid-template-columns:1fr;gap:10px}
-  @media(min-width:520px){.row2{grid-template-columns:1fr 1fr}}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .chkline{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;margin-bottom:6px;cursor:pointer}
   .chkline input{width:auto}.chkline.on{border-color:var(--yellow)}
   .modal{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;display:flex;align-items:flex-end;justify-content:center}
@@ -167,6 +166,7 @@
 <div id="app" class="hidden">
   <div class="topbar">
     <div class="logomark" id="topLogo"></div><div class="spacer"></div>
+    <button class="iconbtn" id="syncBtn" title="Sincronizar con el Excel">↻</button>
     <button class="iconbtn hidden" id="gearBtn" title="Ajustes">⚙</button>
     <div class="userchip"><div class="avatar" id="uAvatar"></div><span id="uName"></span><span class="roletag" id="uRole"></span></div>
     <button class="iconbtn" id="logoutBtn" title="Salir">⏻</button>
@@ -194,21 +194,27 @@ function initPush(){if(!ONESIGNAL_APP_ID)return;window.OneSignalDeferred.push(as
 function pushLoginEmpleado(id){if(!ONESIGNAL_APP_ID)return;window.OneSignalDeferred.push(function(O){try{O.login(id)}catch(e){}})}
 function pushLogout(){if(!ONESIGNAL_APP_ID)return;window.OneSignalDeferred.push(function(O){try{O.logout()}catch(e){}})}
 function pedirPermisoPush(){
-  if(!ONESIGNAL_APP_ID){alert('Falta configurar OneSignal (App ID).');return}
-  /* el soporte se chequea despues del caso iPhone */
-  var esIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
-  var instalada=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
-  if(esIOS&&!instalada){alert('📱 En iPhone primero tenés que instalar la app:\n\n1) Tocá el botón Compartir (el cuadrado con la flecha hacia arriba)\n2) Elegí Agregar a pantalla de inicio\n3) Abrí DepoApp desde ese ícono nuevo\n4) Volvé a tocar Activar notificaciones\n\nEs una limitación de Apple, no de la app.');return}
-  if(!('Notification' in window)){alert('Este navegador no soporta notificaciones web. En iPhone necesitas iOS 16.4 o mas nuevo y la app agregada a la pantalla de inicio.');return}
-  if(Notification.permission==='granted'){alert('🔔 Ya tenés las notificaciones activadas.');return}
-  if(Notification.permission==='denied'){alert('🔕 Las notificaciones están bloqueadas para este sitio.\n\nTocá el candado al lado de la dirección web, entrá a Permisos y activá Notificaciones. Después volvé a probar.');return}
+  if(!ONESIGNAL_APP_ID){alert("Falta configurar OneSignal (App ID).");return}
+  if(!("Notification" in window)){alert("Este navegador no soporta notificaciones.");return}
+  const esIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+  const instalada=window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true;
+  if(esIOS&&!instalada){
+    alert("📱 En iPhone primero tenés que instalar la app:\n\n1) Tocá el botón Compartir (el cuadrado con la flecha hacia arriba)\n2) Elegí \"Agregar a pantalla de inicio\"\n3) Abrí DepoApp desde ese ícono nuevo\n4) Volvé a tocar \"Activar notificaciones\"\n\nEs una limitación de Apple, no de la app.");
+    return;
+  }
+  if(Notification.permission==="granted"){alert("🔔 Ya tenés las notificaciones activadas.");return}
+  if(Notification.permission==="denied"){
+    alert("🔕 Las notificaciones están bloqueadas para este sitio.\n\nTocá el candado (o los 3 puntos) al lado de la dirección web, entrá a Permisos y activá Notificaciones. Después volvé a probar.");
+    return;
+  }
   window.OneSignalDeferred.push(async function(O){
-    try{ await O.Notifications.requestPermission();
+    try{
+      await O.Notifications.requestPermission();
       setTimeout(function(){
-        if(Notification.permission==='granted')alert('✅ ¡Listo! Te vamos a avisar cuando tengas un partido nuevo o algún cambio.');
-        else alert('No quedaron activadas. Volvé a tocar el botón y elegí Permitir.');
+        if(Notification.permission==="granted")alert("✅ ¡Listo! Te vamos a avisar cuando tengas un partido nuevo o algún cambio.");
+        else alert("No quedaron activadas. Volvé a tocar el botón y elegí \"Permitir\".");
       },1000);
-    }catch(e){alert('No se pudieron activar.\n\nDetalle: '+(e&&e.message?e.message:e));}
+    }catch(e){alert("No se pudieron activar.\n\nDetalle: "+(e&&e.message?e.message:e));}
   });
 }
 
@@ -334,6 +340,89 @@ function loadState(){
 function saveState(){localStorage.setItem(LS_KEY,JSON.stringify(ST))}
 let ST=loadState();
 
+/* ===================== SINCRONIZACIÓN CON EL EXCEL =====================
+   Lee y escribe la hoja "Asignaciones" del Google Sheet a través del
+   backend de Apps Script. Cuando se asigna o cambia un partido, el backend
+   manda la notificación push SOLO al empleado que corresponde.            */
+const BACKEND_URL="https://script.google.com/macros/s/AKfycbxYQIv9vEMSLUcmOsoZcdFC9laPOQTmT2QofrecfAqN0JJRfnYFffQ8KpdUpkG-YOfgaw/exec";
+const BACKEND_TOKEN="DepoApp2026x";
+let SYNC_MSG="", SYNC_OK=null, TAB_ACTUAL="resumen";
+
+const _sa=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
+function hoyISO(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+
+/* "ENZO NUÑEZ" -> "enzo"  ·  "GASTON CHECHI" -> "jefe" */
+function empIdPorNombre(txt){
+  const t=_sa(txt); if(!t) return "";
+  if(t.indexOf("GASTON")>-1) return "jefe";
+  const e=ST.empleados.find(e=>_sa(e.nombre).split(" ").some(w=>w.length>2&&t.indexOf(w)>-1));
+  return e?e.id:"";
+}
+function nombrePorEmpId(id){
+  if(id==="jefe") return "GASTON CHECHI";
+  const e=ST.empleados.find(e=>e.id===id);
+  return e?e.nombre.toUpperCase():"";
+}
+
+/* Mezcla lo que viene del Excel con lo que ya hay en la app (match por id) */
+function aplicarRemotos(lista){
+  const porId={}; ST.partidos.forEach(p=>{if(p.id)porId[p.id]=p});
+  const hoy=hoyISO(); let nuevos=0,cambios=0;
+  (lista||[]).forEach(r=>{
+    if(!r.id||!r.fecha) return;
+    const emp=empIdPorNombre(r.emp);
+    const base=porId[r.id];
+    if(base){
+      if(base.fecha!==r.fecha||base.hora!==r.hora||base.cancha!==r.cancha||base.emp!==emp) cambios++;
+      Object.assign(base,{fecha:r.fecha,hora:r.hora,cancha:r.cancha,club:r.club,cat:r.cat,
+        precio:r.precio,emp:emp,edi:r.edi,pagado:r.pagado});
+    }else{
+      ST.partidos.push({id:r.id,fecha:r.fecha,hora:r.hora,cancha:r.cancha,club:r.club,cat:r.cat,
+        precio:r.precio,emp:emp,edi:r.edi,pagado:r.pagado,
+        estado:r.fecha<hoy?"entreg":"prox",club2:"",precio2:0,cerro:""});
+      nuevos++;
+    }
+  });
+  return{nuevos,cambios};
+}
+
+async function sincronizar(silencioso){
+  try{
+    const r=await fetch(BACKEND_URL+"?action=partidos&token="+encodeURIComponent(BACKEND_TOKEN));
+    const d=await r.json();
+    if(!d.ok) throw new Error(d.error||"respuesta inválida");
+    const res=aplicarRemotos(d.partidos);
+    saveState(); SYNC_OK=true;
+    SYNC_MSG="Excel sincronizado "+new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"});
+    if(!silencioso){
+      alert("✅ Sincronizado con el Excel\n\n"+d.total+" partidos leídos\nNuevos: "+res.nuevos+"\nActualizados: "+res.cambios);
+      go(TAB_ACTUAL);
+    }else if(res.nuevos+res.cambios>0){ go(TAB_ACTUAL) }
+  }catch(e){
+    SYNC_OK=false; SYNC_MSG="Sin conexión con el Excel";
+    if(!silencioso) alert("No pude sincronizar.\n\n"+e.message);
+  }
+}
+
+/* Guarda un partido en el Excel. El backend avisa al empleado por push. */
+async function guardarEnExcel(p){
+  try{
+    const r=await fetch(BACKEND_URL,{method:"POST",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({token:BACKEND_TOKEN,action:"guardarPartido",partido:{
+        id:p.id,fecha:p.fecha,hora:p.hora,cancha:p.cancha,club:p.club,cat:p.cat,
+        precio:p.precio,emp:nombrePorEmpId(p.emp),empId:p.emp,edi:p.edi,pagado:p.pagado}})});
+    return await r.json();
+  }catch(e){ return{ok:false,error:String(e)} }
+}
+
+/* Sincronización automática: al abrir, cada 3 min, y al volver a la app */
+function arrancarSync(){
+  sincronizar(true);
+  setInterval(()=>sincronizar(true),180000);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)sincronizar(true)});
+}
+
 /* ===================== HELPERS ===================== */
 const $=(s,r=document)=>r.querySelector(s);
 const money=n=>"$"+Math.round(n||0).toLocaleString("es-AR");
@@ -443,12 +532,14 @@ function buildNav(){const nav=$("#nav");nav.innerHTML="";
   TABS.forEach(t=>{const b=document.createElement("button");b.innerHTML=`<span class="ic">${t.ic}</span><span>${t.label}</span>`;
     b.dataset.tab=t.id;b.onclick=()=>go(t.id);nav.appendChild(b)})}
 function go(tab){
+  TAB_ACTUAL=tab;
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
   const v=$("#view");v.innerHTML="";window.scrollTo(0,0);
   ({resumen:viewResumen,finanzas:viewFinanzas,clientes:viewClientes,asignaciones:viewAsignaciones,equipo:viewEquipo,objetivos:viewObjetivos})[tab](v)
 }
 $("#logoutBtn").onclick=()=>{pushLogout();SESSION=null;$("#app").classList.add("hidden");$("#login").classList.remove("hidden");$("#pinPad").classList.add("hidden");$("#whoStep").classList.remove("hidden");renderWho()};
 $("#gearBtn").onclick=ajustesModal;
+$("#syncBtn").onclick=()=>{const b=$("#syncBtn");b.textContent="⏳";sincronizar(false).finally(()=>{b.textContent="↻"})};
 
 /* ===================== EMPLEADO ===================== */
 function matchCard(p){
@@ -743,8 +834,14 @@ function partidoModal(idx){
       emp:$("#pEmp").value,edi:ct.edi,estado:$("#pEst").value,precio:+$("#pPrecio").value||0,
       club2:$("#pClub2").value.trim(),precio2:+$("#pPrecio2").value||0,cerro:$("#pCerro").value,
       pagado:$("#pPag").checked,nuevo:true};
-    if(nuevo)ST.partidos.push(d);else Object.assign(p,d);
-    saveState();closeModal();go("asignaciones")};
+    let dest;
+    if(nuevo){ d.id="DA"+Date.now(); ST.partidos.push(d); dest=d }
+    else { Object.assign(p,d); if(!p.id)p.id="DA"+Date.now(); dest=p }
+    saveState();closeModal();go("asignaciones");
+    guardarEnExcel(dest).then(r=>{
+      if(!r||!r.ok) alert("Guardado en la app, pero no pude escribirlo en el Excel.\nSe reintenta al sincronizar.");
+      else if(dest.emp && r.push && r.push!=="enviado") console.warn("push:",r.push);
+    });};
   if(!nuevo)$("#pDel").onclick=()=>{if(confirm("¿Borrar partido?")){ST.partidos.splice(idx,1);saveState();closeModal();go("asignaciones")}};
 }
 
@@ -859,7 +956,7 @@ function openModal(h){$("#modalRoot").innerHTML=`<div class="modal" onclick="if(
 function closeModal(){$("#modalRoot").innerHTML=""}
 
 /* ===================== INIT ===================== */
-renderWho();renderKeys();initPush();
+renderWho();renderKeys();initPush();arrancarSync();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){navigator.serviceWorker.register('sw.js').catch(function(){})}
 </script>
 </body>
