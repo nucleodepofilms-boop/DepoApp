@@ -232,6 +232,7 @@ const JEFE={id:"jefe",nombre:"Gastón"};
 
 /* Tarifas: TODAS editables desde Ajustes */
 const TARIFAS_DEF={
+  v:2,                   // subir este numero fuerza a tomar los valores nuevos
   porPartido:20500,      // filmación, por partido
   transporte:6000,       // por salida (una vez por día, aunque filme 2 o 3)
   plusLejana:2500,       // extra si la cancha es lejana
@@ -346,7 +347,9 @@ function loadState(){
     fotos:s.fotos||[],
     movimientos:s.movimientos||structuredClone(MOVIMIENTOS_DEF),
     objetivos:s.objetivos||structuredClone(OBJETIVOS_DEF),
-    tarifas:Object.assign(structuredClone(TARIFAS_DEF),s.tarifas||{}),
+    tarifas:(s.tarifas&&s.tarifas.v===TARIFAS_DEF.v)
+      ?Object.assign(structuredClone(TARIFAS_DEF),s.tarifas)
+      :structuredClone(TARIFAS_DEF),
     precios:Object.assign(structuredClone(PRECIOS_DEF),s.precios||{}),
     config:Object.assign(structuredClone(CONFIG_DEF),s.config||{}),
     pins:s.pins||{jefe:"2026"},
@@ -1026,7 +1029,7 @@ function ajustesModal(){
   <div class="flexbtns" style="margin-top:16px"><button class="btn ghost" onclick="closeModal()">Cerrar</button>
   <button class="btn danger" id="aReset">Borrar todo y volver al inicio</button></div>`);
   $("#aSave").onclick=()=>{
-    ST.tarifas={porPartido:+$("#aPP").value||0,edicion:+$("#aEd").value||0,transporte:+$("#aTr").value||0,
+    ST.tarifas={v:TARIFAS_DEF.v,porPartido:+$("#aPP").value||0,edicion:+$("#aEd").value||0,transporte:+$("#aTr").value||0,
       plusLejana:+$("#aLej").value||0,fotoPorSesion:+$("#aFot").value||0,redes:+$("#aRe").value||0,
       comisionPct:+$("#aCom").value||0};
     ST.config={aumentoPct:+$("#cAum").value||0,compartidoPct:+$("#cComp").value||70,descuentoAbonoPct:+$("#cDesc").value||0,
