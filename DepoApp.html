@@ -374,6 +374,7 @@ function loadState(){
     precios:Object.assign(structuredClone(PRECIOS_DEF),s.precios||{}),
     config:Object.assign(structuredClone(CONFIG_DEF),s.config||{}),
     pins:s.pins||{jefe:"2026"},
+    mesLiq:s.mesLiq||"2026-07",
   };
 }
 function saveState(){localStorage.setItem(LS_KEY,JSON.stringify(ST))}
@@ -572,6 +573,99 @@ function liquidacion(empId,ym){
     redes, comision,
     total:filmacion+transporte+edicion+fotoPago+redes+comision
   };
+}
+
+/* ===================== LIQUIDACIÓN EN IMAGEN =====================
+   Dibuja un PNG con el desglose de cada persona y los totales,
+   listo para mandar por WhatsApp. Sin librerías: canvas puro.     */
+function filasLiq(L){
+  const f=[];
+  if(L.partidos) f.push([L.partidos+" partidos filmados", L.filmacion]);
+  if(L.nFotos)   f.push([L.nFotos+" sesiones de fotos",   L.fotoPago]);
+  if(L.salidas)  f.push([L.salidas+" salidas"+(L.plusLejana?" (+ cancha lejana)":""), L.transporte]);
+  if(L.nEdit)    f.push([L.nEdit+" partidos editados",    L.edicion]);
+  if(L.redes)    f.push(["Redes",                          L.redes]);
+  if(L.comision) f.push(["Comisiones 2º equipo",           L.comision]);
+  return f;
+}
+
+function imagenLiquidacion(ym, soloEmp){
+  const BG="#0f0f0f", CARD="#1a1a1a", AM="#ffd21e", TX="#f2f2f2", MU="#8f8f8f";
+  const lista=ST.empleados.filter(e=>e.activo!==false&&(!soloEmp||e.id===soloEmp))
+    .map(e=>({e,L:liquidacion(e.id,ym),f:filasLiq(liquidacion(e.id,ym))}))
+    .filter(x=>x.L.total>0);
+  if(!lista.length){alert("No hay nada para liquidar en ese mes.");return}
+
+  const W=880, P=34;
+  let H=132;
+  lista.forEach(d=>{ H += 44 + d.f.length*31 + 48 + 16 });
+  H += soloEmp?40:96;
+
+  const c=document.createElement("canvas"), k=2;
+  c.width=W*k; c.height=H*k;
+  const g=c.getContext("2d"); g.scale(k,k);
+
+  const mesTxt=(()=>{const [a,m]=ym.split("-");return MESN[+m-1].toUpperCase()+" "+a})();
+  const num=n=>"$"+Math.round(n||0).toLocaleString("es-AR");
+
+  g.fillStyle=BG; g.fillRect(0,0,W,H);
+
+  /* encabezado */
+  g.fillStyle=AM; g.fillRect(0,0,W,6);
+  g.fillStyle=TX; g.font="700 30px system-ui,sans-serif";
+  g.fillText("DepoFilms", P, 56);
+  g.fillStyle=AM; g.font="700 18px system-ui,sans-serif";
+  g.fillText("Liquidación · "+mesTxt, P, 84);
+  g.fillStyle=MU; g.font="13px system-ui,sans-serif";
+  g.fillText("Generado el "+new Date().toLocaleDateString("es-AR"), P, 106);
+
+  let y=132, granTotal=0;
+  lista.forEach(d=>{
+    const altura=44+d.f.length*31+48;
+    g.fillStyle=CARD; g.beginPath(); g.roundRect(P,y,W-P*2,altura,14); g.fill();
+
+    g.fillStyle=TX; g.font="700 19px system-ui,sans-serif";
+    g.fillText(d.e.nombre, P+22, y+32);
+
+    let ly=y+62;
+    d.f.forEach(([txt,val])=>{
+      g.fillStyle=MU; g.font="15px system-ui,sans-serif";
+      g.fillText(txt, P+22, ly);
+      g.fillStyle=TX; g.font="15px system-ui,sans-serif";
+      g.textAlign="right"; g.fillText(num(val), W-P-22, ly); g.textAlign="left";
+      ly+=31;
+    });
+
+    g.strokeStyle="#333"; g.lineWidth=1; g.beginPath();
+    g.moveTo(P+22,ly-12); g.lineTo(W-P-22,ly-12); g.stroke();
+
+    g.fillStyle=TX; g.font="700 17px system-ui,sans-serif";
+    g.fillText("Total", P+22, ly+16);
+    g.fillStyle=AM; g.font="700 21px system-ui,sans-serif";
+    g.textAlign="right"; g.fillText(num(d.L.total), W-P-22, ly+16); g.textAlign="left";
+
+    granTotal+=d.L.total;
+    y+=altura+16;
+  });
+
+  if(!soloEmp){
+    g.fillStyle=AM; g.beginPath(); g.roundRect(P,y,W-P*2,64,14); g.fill();
+    g.fillStyle="#0f0f0f"; g.font="700 20px system-ui,sans-serif";
+    g.fillText("TOTAL A PAGAR", P+22, y+40);
+    g.font="700 26px system-ui,sans-serif";
+    g.textAlign="right"; g.fillText(num(granTotal), W-P-22, y+41); g.textAlign="left";
+  }
+
+  const nombre="liquidacion-"+(soloEmp?soloEmp+"-":"")+ym+".png";
+  c.toBlob(function(b){
+    const url=URL.createObjectURL(b);
+    openModal('<h3>Liquidación '+mesTxt+'</h3>'+
+      '<img src="'+url+'" style="width:100%;border-radius:12px;display:block">'+
+      '<div class="note" style="margin-top:10px">📲 En el celular: mantené apretada la imagen para guardarla o compartirla por WhatsApp.</div>'+
+      '<div class="flexbtns" style="margin-top:12px">'+
+      '<a class="btn" href="'+url+'" download="'+nombre+'">Descargar</a>'+
+      '<button class="btn ghost" onclick="closeModal()">Cerrar</button></div>');
+  },"image/png");
 }
 
 /* ===================== SESIÓN / LOGIN ===================== */
@@ -983,7 +1077,7 @@ function partidoModal(idx){
 
 /* ===================== EQUIPO ===================== */
 function viewEquipo(v){
-  const ym="2026-07",t=ST.tarifas;
+  const ym=ST.mesLiq||"2026-07",t=ST.tarifas;
   const total=ST.empleados.filter(e=>e.activo!==false).reduce((a,e)=>a+liquidacion(e.id,ym).total,0);
   v.innerHTML=`<div class="pagetitle">Equipo <small>Empleados, roles y liquidación de julio</small></div>
     <div class="note">💡 Los valores de pago los cambiás en <b>⚙ Ajustes</b>. Acá definís quién hace qué: el rol determina qué plus cobra.</div>
@@ -991,7 +1085,8 @@ function viewEquipo(v){
       <div class="kpi"><div class="lbl">Activos</div><div class="val">${ST.empleados.filter(e=>e.activo!==false).length}</div></div>
       <div class="kpi"><div class="lbl">Por partido</div><div class="val">${money(t.porPartido)}</div></div>
       <div class="kpi"><div class="lbl">Transporte</div><div class="val">${money(t.transporte)}</div><div class="sub">por salida</div></div></div>
-    <div class="flexbtns" style="margin:16px 0 8px"><button class="btn sm" id="addEmp">+ Sumar persona</button></div>
+    <div class="field" style="margin-top:14px"><label>Mes a liquidar</label><input id="qMes" type="month" value="${ym}"></div>
+    <div class="flexbtns" style="margin:12px 0 8px"><button class="btn" id="genLiq">🧾 Generar liquidación</button><button class="btn sm ghost" id="addEmp">+ Sumar persona</button></div>
     <div class="tablewrap"><table><thead><tr><th>Persona</th><th>Roles</th><th class="num">Partidos</th><th class="num">A cobrar</th></tr></thead><tbody>
     ${ST.empleados.map((e,i)=>{const L=liquidacion(e.id,ym);const r=[];
       if(e.roles&&e.roles.camara)r.push("cámara");if(e.roles&&e.roles.editor)r.push("editor");
@@ -1002,6 +1097,8 @@ function viewEquipo(v){
     </tbody></table></div>`;
   v.querySelectorAll("[data-eemp]").forEach(r=>r.onclick=()=>empModal(+r.dataset.eemp));
   $("#addEmp").onclick=()=>empModal(null);
+  $("#qMes").onchange=e=>{ST.mesLiq=e.target.value;saveState();go("equipo")};
+  $("#genLiq").onclick=()=>imagenLiquidacion(ym);
 }
 function empModal(idx){
   const nuevo=idx==null;
@@ -1017,8 +1114,10 @@ function empModal(idx){
   <label class="chkline ${e.roles.foto?'on':''}"><input type="checkbox" id="rFot" ${e.roles.foto?'checked':''}> 📸 Fotografía — cobra por sesión</label>
   <label class="chkline ${e.activo!==false?'on':''}"><input type="checkbox" id="rAct" ${e.activo!==false?'checked':''}> ✅ Activo</label>
   ${L?`<div class="note" style="margin-top:12px">Julio: ${L.partidos} partidos · ${L.salidas} salidas${L.nEdit?' · '+L.nEdit+' editados':''}${L.nFotos?' · '+L.nFotos+' fotos':''} → filmación ${money(L.filmacion)} · transporte ${money(L.transporte)}${L.edicion?' · edición '+money(L.edicion):''}${L.fotoPago?' · fotos '+money(L.fotoPago):''}${L.redes?' · redes '+money(L.redes):''}${L.comision?' · comisiones '+money(L.comision):''} = <b>${money(L.total)}</b></div>`:''}
-  <div class="flexbtns" style="margin-top:12px"><button class="btn" id="eSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button>
+  <div class="flexbtns" style="margin-top:12px"><button class="btn" id="eSave">Guardar</button>
+  ${nuevo?'':'<button class="btn sm ghost" id="eLiq">🧾 Su liquidación</button>'}<button class="btn ghost" onclick="closeModal()">Cancelar</button>
   ${nuevo?'':'<button class="btn danger" id="eDel">Borrar</button>'}</div>`);
+  if(!nuevo)$("#eLiq").onclick=()=>imagenLiquidacion(ST.mesLiq||"2026-07",e.id);
   ["rCam","rEdi","rRed","rFot","rAct"].forEach(id=>$("#"+id).onchange=ev=>ev.target.parentElement.classList.toggle("on",ev.target.checked));
   $("#eSave").onclick=()=>{
     const n=$("#eN").value.trim();if(!n){alert("Poné el nombre");return}
