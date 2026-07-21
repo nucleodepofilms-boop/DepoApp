@@ -255,7 +255,22 @@ const PRECIOS_DEF={
 
 /* Config comercial: porcentajes, editables */
 const CONFIG_DEF={ aumentoPct:15, compartidoPct:70, descuentoAbonoPct:10,
-  canchasLejanas:["BANCO MENDOZA"] };
+  canchasLejanas:["BANCO MENDOZA"],
+  /* quien edita lo que filma cada uno */
+  editorPorCamara:{ enzo:"enzo", luca:"enzo", agus:"enzo",
+                    santi:"santi", facu:"santi", giu:"santi" } };
+
+/* Roles reales del equipo. Subir ROLES_V corrige lo que este mal cargado. */
+const ROLES_V=2;
+const ROLES_FIX={
+  enzo :{camara:true, editor:true,  redes:false, foto:false},
+  facu :{camara:true, editor:false, redes:false, foto:false},
+  santi:{camara:true, editor:true,  redes:true,  foto:false},
+  agus :{camara:true, editor:false, redes:false, foto:false},
+  luca :{camara:true, editor:false, redes:false, foto:false},
+  dana :{camara:true, editor:false, redes:false, foto:false},
+  giu  :{camara:true, editor:false, redes:false, foto:true }
+};
 
 const CLUBES_DEF=[
   {club:"COP",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Marcelo",comparte:true,cats:[
@@ -338,10 +353,16 @@ const OBJETIVOS_DEF=[
 
 /* ===================== PERSISTENCIA ===================== */
 const LS_KEY="depoapp_v4";
+function corregirRoles(lista,vGuardada){
+  if(vGuardada===ROLES_V) return lista;
+  (lista||[]).forEach(e=>{ if(ROLES_FIX[e.id]) e.roles=Object.assign({},ROLES_FIX[e.id]) });
+  return lista;
+}
 function loadState(){
   let s;try{s=JSON.parse(localStorage.getItem(LS_KEY))||{}}catch(e){s={}}
   return{
-    empleados:s.empleados||structuredClone(EMPLEADOS_DEF),
+    empleados:corregirRoles(s.empleados||structuredClone(EMPLEADOS_DEF),s.rolesV),
+    rolesV:ROLES_V,
     clubes:s.clubes||structuredClone(CLUBES_DEF),
     partidos:s.partidos||structuredClone(PARTIDOS_DEF),
     fotos:s.fotos||[],
@@ -390,7 +411,7 @@ function aplicarRemotos(lista){
     if(!r.id||!r.fecha) return;
     const emp=empIdPorNombre(r.emp);
     const base=porId[r.id];
-    const editor=empIdPorNombre(r.editor);
+    const editor=empIdPorNombre(r.editor)||editorDe(emp);
     if(base){
       if(base.fecha!==r.fecha||base.hora!==r.hora||base.cancha!==r.cancha||base.emp!==emp) cambios++;
       Object.assign(base,{fecha:r.fecha,hora:r.hora,cancha:r.cancha,club:r.club,cat:r.cat,
@@ -473,6 +494,11 @@ function computeFin(){
     meses:Object.keys(pm).sort().map(k=>({label:MESN[+k.split("-")[1]-1],...pm[k]})),
     cats:Object.entries(pc).map(([cat,val])=>({cat,val})).sort((a,b)=>b.val-a.val)}
 }
+/* Quien edita lo que filmo esta persona (se configura en Ajustes) */
+function editorDe(empId){
+  return (ST.config.editorPorCamara||{})[empId]||"";
+}
+
 /* Tramo del club: chico (1 a 3 categorías) o grande (4 o más) */
 function tramoClub(club){
   const c=ST.clubes.find(x=>x.club===club);
@@ -924,6 +950,7 @@ function partidoModal(idx){
     $("#pInfo").innerHTML=txt;
   }
   $("#pClub").onchange=()=>{fillCats(null);aplicarPrecio()};
+  $("#pEmp").onchange=()=>{const e=editorDe($("#pEmp").value); if(e)$("#pEditor").value=e};
   $("#pCat").onchange=sync;$("#pPrecio").oninput=sync;$("#pPrecio2").oninput=sync;
   $("#pF").onchange=sync;$("#pCancha").oninput=sync;
   ["pPag","pTodo","pEdi"].forEach(id=>$("#"+id).onchange=e=>{
@@ -938,7 +965,8 @@ function partidoModal(idx){
     const ct=c&&c.cats.find(x=>x.cat===$("#pCat").value);
     if(!c||!ct){alert("Elegí club y categoría");return}
     const d={fecha:$("#pF").value,hora:$("#pH").value.trim(),cancha:$("#pCancha").value.trim(),club:c.club,cat:ct.cat,
-      emp:$("#pEmp").value,editor:$("#pEditor").value,edi:$("#pEdi").checked,todo:$("#pTodo").checked,
+      emp:$("#pEmp").value,editor:$("#pEditor").value||editorDe($("#pEmp").value),
+      edi:$("#pEdi").checked,todo:$("#pTodo").checked,
       estado:$("#pEst").value,precio:+$("#pPrecio").value||0,
       club2:$("#pClub2").value.trim(),precio2:+$("#pPrecio2").value||0,cerro:$("#pCerro").value,
       pagado:$("#pPag").checked,nuevo:true};
@@ -1016,6 +1044,12 @@ function ajustesModal(){
   <div class="field"><label>Comisión por cerrar 2º equipo (% de lo que paga)</label><input id="aCom" type="number" value="${t.comisionPct}"></div>
   <div class="field"><label>Canchas lejanas (una por línea, cobran el plus)</label>
   <textarea id="aCanchas" rows="4" style="width:100%">${(c.canchasLejanas||[]).join("\n")}</textarea></div>
+  <div class="sectitle">Quién edita lo de cada uno</div>
+  <div id="aEditores">${ST.empleados.filter(e=>e.activo!==false&&e.roles&&e.roles.camara).map(e=>`
+    <div class="chkline" style="cursor:default"><span style="flex:1">${e.nombre}</span>
+    <select data-ed="${e.id}" style="max-width:160px"><option value="">— nadie —</option>
+    ${ST.empleados.filter(x=>x.roles&&x.roles.editor).map(x=>`<option value="${x.id}" ${((c.editorPorCamara||{})[e.id]===x.id)?'selected':''}>${x.nombre}</option>`).join("")}
+    </select></div>`).join("")}</div>
   <div class="sectitle">Porcentajes comerciales</div>
   <div class="row2"><div class="field"><label>Aumento a aplicar (%)</label><input id="cAum" type="number" value="${c.aumentoPct}"></div>
   <div class="field"><label>Precio compartido (% del individual)</label><input id="cComp" type="number" value="${c.compartidoPct}"></div></div>
@@ -1033,7 +1067,8 @@ function ajustesModal(){
       plusLejana:+$("#aLej").value||0,fotoPorSesion:+$("#aFot").value||0,redes:+$("#aRe").value||0,
       comisionPct:+$("#aCom").value||0};
     ST.config={aumentoPct:+$("#cAum").value||0,compartidoPct:+$("#cComp").value||70,descuentoAbonoPct:+$("#cDesc").value||0,
-      canchasLejanas:$("#aCanchas").value.split("\n").map(x=>x.trim()).filter(Boolean)};
+      canchasLejanas:$("#aCanchas").value.split("\n").map(x=>x.trim()).filter(Boolean),
+      editorPorCamara:(function(){const m={};$("#aEditores").querySelectorAll("[data-ed]").forEach(sel=>{if(sel.value)m[sel.dataset.ed]=sel.value});return m})()};
     saveState();$("#aSave").textContent="✓ Guardado"};
   $("#aChg").onclick=()=>changePinModal("jefe");
   $("#aPins").querySelectorAll("[data-rp]").forEach(b=>b.onclick=()=>{if(confirm("¿Resetear PIN?")){delete ST.pins[b.dataset.rp];saveState();ajustesModal()}});
