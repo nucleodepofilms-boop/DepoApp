@@ -751,7 +751,7 @@ function viewPerfil(v){
   const nuevos=mine.filter(p=>p.nuevo).length;
   const objs=ST.objetivos.filter(o=>o.para.includes("todos")||o.para.includes(e.id));
   v.innerHTML=`<div class="phead"><div class="big" id="fotoBig">${avatarInner(e.id,e.nombre)}</div>
-    <div><div class="n">${e.nombre}</div><div class="r">${e.transporte||''}</div>
+    <div><div class="n">${e.nombre}</div>
     <button class="btn sm ghost" id="cambiarFoto" style="margin-top:6px">📷 Cambiar foto</button></div></div>
     <input type="file" id="fotoInput" accept="image/*" style="display:none">
     ${nuevos?`<div class="alertbanner">🔔 Tenés <b style="color:var(--yellow)">&nbsp;${nuevos} novedad(es)&nbsp;</b> en tus partidos <button class="btn sm x" id="verVisto">Visto</button></div>`:''}
@@ -1220,7 +1220,21 @@ function closeModal(){$("#modalRoot").innerHTML=""}
 
 /* ===================== INIT ===================== */
 renderWho();renderKeys();initPush();arrancarSync();
-if('serviceWorker' in navigator && location.protocol.startsWith('http')){navigator.serviceWorker.register('sw.js').catch(function(){})}
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  navigator.serviceWorker.register('sw.js').then(function(reg){
+    reg.update();
+    reg.addEventListener('updatefound',function(){
+      var nw=reg.installing;
+      nw&&nw.addEventListener('statechange',function(){
+        if(nw.state==='installed'&&navigator.serviceWorker.controller){nw.postMessage('skipWaiting');}
+      });
+    });
+  }).catch(function(){});
+  var _recargado=false;
+  navigator.serviceWorker.addEventListener('controllerchange',function(){
+    if(_recargado)return;_recargado=true;location.reload();
+  });
+}
 </script>
 </body>
 </html>
