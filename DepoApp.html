@@ -32,6 +32,7 @@
   .who button:hover{border-color:var(--yellow);transform:translateY(-2px)}
   .who button.boss{grid-column:1/-1;background:linear-gradient(135deg,#2a2408,#141414);border-color:var(--yellow)}
   .avatar{width:40px;height:40px;border-radius:50%;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--yellow);font-size:15px;border:1px solid var(--line)}
+  .avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover}
   .who small{color:var(--muted);font-weight:500;font-size:11.5px}
   #pinPad{width:100%;max-width:320px;text-align:center}
   #pinPad h3{margin:6px 0 2px}#pinPad p{color:var(--muted);margin:0 0 8px;font-size:13px}
@@ -69,6 +70,7 @@
   .val.green{color:var(--green)}.val.red{color:var(--red)}.val.gold{color:var(--yellow)}
   .phead{display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,#211d08,#141414);border:1px solid #3a3208;border-radius:var(--radius);padding:18px}
   .phead .big{width:64px;height:64px;border-radius:50%;background:var(--panel2);border:2px solid var(--yellow);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:var(--yellow)}
+  .phead .big img{width:100%;height:100%;border-radius:50%;object-fit:cover}
   .phead .n{font-size:20px;font-weight:800}.phead .r{color:var(--muted);font-size:13px;margin-top:2px}
   .alertbanner{display:flex;align-items:center;gap:10px;background:#2a2408;border:1px solid var(--yellow);border-radius:14px;padding:12px 14px;margin:14px 0;font-weight:600;font-size:14px}
   .alertbanner .x{margin-left:auto}
@@ -254,7 +256,7 @@ const PRECIOS_DEF={
 };
 
 /* Config comercial: porcentajes, editables */
-const CONFIG_DEF={ aumentoPct:15, compartidoPct:70, descuentoAbonoPct:10,
+const CONFIG_DEF={ aumentoPct:15, compartidoPct:70, descuentoAbonoPct:5,
   canchasLejanas:["BANCO MENDOZA"],
   /* quien edita lo que filma cada uno */
   editorPorCamara:{ enzo:"enzo", luca:"enzo", agus:"enzo",
@@ -324,17 +326,7 @@ const CLUBES_DEF=[
     {cat:"C20",precio:52000,edi:false,local:"Local",cancha:"—"}]},
 ];
 
-const PARTIDOS_DEF=[
-  {fecha:"2026-07-15",hora:"21:00",cancha:"POLIGUAY",club:"Alianza G.",cat:"Primera A / Serie A",emp:"facu",edi:false,estado:"prox",precio:38000,nuevo:true,pagado:false,club2:"",precio2:0,cerro:""},
-  {fecha:"2026-07-16",hora:"22:00",cancha:"Murialdo",club:"Murialdo",cat:"Femenino / Serie A",emp:"dana",edi:false,estado:"prox",precio:38000,nuevo:true,pagado:false,club2:"",precio2:0,cerro:""},
-  {fecha:"2026-07-16",hora:"21:00",cancha:"COP",club:"COP",cat:"Primera A / Premium",emp:"luca",edi:true,estado:"prox",precio:45000,nuevo:true,pagado:true,club2:"",precio2:0,cerro:""},
-  {fecha:"2026-07-17",hora:"20:30",cancha:"Banco Nación",club:"Banco Nación",cat:"Primera A / Premium",emp:"enzo",edi:false,estado:"prox",precio:45000,nuevo:true,pagado:false,club2:"",precio2:0,cerro:""},
-  {fecha:"2026-07-17",hora:"21:30",cancha:"Alemán",club:"Alemán",cat:"FSP Masculino",emp:"santi",edi:true,estado:"prox",precio:43000,nuevo:true,pagado:true,club2:"",precio2:0,cerro:""},
-  {fecha:"2026-07-18",hora:"19:00",cancha:"Pacífico",club:"Pacífico",cat:"Primera B / Serie B",emp:"agus",edi:false,estado:"prox",precio:48000,nuevo:true,pagado:false,club2:"",precio2:0,cerro:""},
-  {fecha:"2026-07-19",hora:"11:00",cancha:"Cerede",club:"Cerede",cat:"Primera A / Serie A",emp:"luca",edi:true,estado:"prox",precio:48000,nuevo:true,pagado:false,club2:"",precio2:0,cerro:""},
-  {fecha:"2026-07-12",hora:"21:00",cancha:"COP",club:"COP",cat:"Veteranos / Plata",emp:"luca",edi:false,estado:"entreg",precio:40000,pagado:true,club2:"",precio2:0,cerro:""},
-  {fecha:"2026-07-11",hora:"22:00",cancha:"Murialdo",club:"Murialdo",cat:"Primera / Serie B",emp:"dana",edi:true,estado:"entreg",precio:38000,pagado:true,club2:"",precio2:0,cerro:""},
-];
+const PARTIDOS_DEF=[];
 
 const MOVIMIENTOS_DEF=[
   {id:1,fecha:"2026-06-10",tipo:"INGRESO",concepto:"Cobros filmación junio",categoria:"Cobro filmación",monto:1811703},
@@ -345,14 +337,12 @@ const MOVIMIENTOS_DEF=[
 ];
 
 const OBJETIVOS_DEF=[
-  {id:1,titulo:"Cobrar el 95% de lo facturado",detalle:"Sin pago no hay entrega.",plazo:"2026-08-31",done:false,para:["jefe"]},
-  {id:2,titulo:"Aplicar la nueva lista de precios",detalle:"+15% sobre el precio actual de cada club.",plazo:"2026-08-05",done:false,para:["jefe"]},
-  {id:3,titulo:"Ofrecer el partido compartido al rival",detalle:"Si el club autoriza, ofrecerlo siempre.",plazo:"2026-08-31",done:false,para:["todos"]},
-  {id:4,titulo:"Confirmar asignaciones antes del lunes 12hs",detalle:"Responder OK/CAMBIO a tiempo.",plazo:"2026-07-27",done:false,para:["todos"]},
+  {id:3,titulo:"Ofrecer el partido compartido al rival",detalle:"Si el club autoriza, ofrecerlo siempre.",plazo:"2026-08-31",done:false,para:["todos"],autor:"jefe"},
+  {id:4,titulo:"Confirmar asignaciones antes del lunes 12hs",detalle:"Responder OK/CAMBIO a tiempo.",plazo:"2026-07-27",done:false,para:["todos"],autor:"jefe"},
 ];
 
 /* ===================== PERSISTENCIA ===================== */
-const LS_KEY="depoapp_v4";
+const LS_KEY="depoapp_v5";
 function corregirRoles(lista,vGuardada){
   if(vGuardada===ROLES_V) return lista;
   (lista||[]).forEach(e=>{ if(ROLES_FIX[e.id]) e.roles=Object.assign({},ROLES_FIX[e.id]) });
@@ -374,6 +364,7 @@ function loadState(){
     precios:Object.assign(structuredClone(PRECIOS_DEF),s.precios||{}),
     config:Object.assign(structuredClone(CONFIG_DEF),s.config||{}),
     pins:s.pins||{jefe:"2026"},
+    avatares:s.avatares||{},
     mesLiq:s.mesLiq||"2026-07",
   };
 }
@@ -408,8 +399,11 @@ function nombrePorEmpId(id){
 function aplicarRemotos(lista){
   const porId={}; ST.partidos.forEach(p=>{if(p.id)porId[p.id]=p});
   const hoy=hoyISO(); let nuevos=0,cambios=0;
+  /* Solo trae partidos desde el mes en curso para adelante (no todo el historial viejo) */
+  const desde=(ST.config.desdeFecha)||(hoy.slice(0,7)+"-01");
   (lista||[]).forEach(r=>{
     if(!r.id||!r.fecha) return;
+    if(String(r.fecha)<desde && !porId[r.id]) return;
     const emp=empIdPorNombre(r.emp);
     const base=porId[r.id];
     const editor=empIdPorNombre(r.editor)||editorDe(emp);
@@ -469,6 +463,7 @@ function arrancarSync(){
 const $=(s,r=document)=>r.querySelector(s);
 const money=n=>"$"+Math.round(n||0).toLocaleString("es-AR");
 const initials=n=>n.split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase();
+function avatarInner(id,nombre){var f=(ST.avatares||{})[id];return f?`<img src="${f}" alt="">`:initials(nombre);}
 const empById=id=>id==="jefe"?JEFE:ST.empleados.find(e=>e.id===id);
 const MESN=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
 const TODAY=new Date("2026-07-20T00:00:00");
@@ -673,19 +668,18 @@ let SESSION=null,pinBuf="",pinTarget=null,pinMode="enter",pinFirst="";
 function renderWho(){
   $("#loginLogo").innerHTML=logoFull(38);
   const list=$("#whoList");list.innerHTML="";
-  ST.empleados.filter(e=>e.activo!==false).forEach(e=>{
+  const todos=ST.empleados.filter(e=>e.activo!==false).concat([JEFE]);
+  todos.forEach(e=>{
     const b=document.createElement("button");
-    b.innerHTML=`<div class="avatar">${initials(e.nombre)}</div><span>${e.nombre.split(" ")[0]}</span><small>${ST.pins[e.id]?'Empleado':'Crear PIN'}</small>`;
-    b.onclick=()=>startPin(e,"empleado");list.appendChild(b)});
-  const boss=document.createElement("button");boss.className="boss";
-  boss.innerHTML=`<div class="avatar">👑</div><span style="font-size:16px">Gastón</span>`;
-  boss.onclick=()=>startPin(JEFE,"jefe");list.appendChild(boss);
+    b.innerHTML=`<div class="avatar">${avatarInner(e.id,e.nombre)}</div><span>${e.nombre.split(" ")[0]}</span>`;
+    b.onclick=()=>startPin(e, e.id==="jefe"?"jefe":"empleado");list.appendChild(b);
+  });
 }
 function startPin(emp,role){
   pinTarget={emp,role};pinBuf="";pinFirst="";
   pinMode=(role==="jefe"||ST.pins[emp.id])?"enter":"create";
   $("#whoStep").classList.add("hidden");$("#pinPad").classList.remove("hidden");
-  $("#pinAvatar").textContent=role==="jefe"?"👑":initials(emp.nombre);
+  $("#pinAvatar").innerHTML=avatarInner(emp.id,emp.nombre);
   $("#pinName").textContent=emp.nombre;
   $("#pinRole").textContent=pinMode==="create"?"Creá tu PIN de 4 dígitos":(role==="jefe"?"PIN de jefe":"Ingresá tu PIN");
   $("#pinErr").textContent="";updateDots();
@@ -718,10 +712,9 @@ const TABS=[{id:"resumen",ic:"📊",label:"Resumen"},{id:"finanzas",ic:"📈",la
 function enterApp(){
   $("#login").classList.add("hidden");$("#app").classList.remove("hidden");
   $("#topLogo").innerHTML=logoFull(26);
-  $("#uAvatar").textContent=SESSION.role==="jefe"?"👑":initials(SESSION.emp.nombre);
+  $("#uAvatar").innerHTML=avatarInner(SESSION.emp.id,SESSION.emp.nombre);
   $("#uName").textContent=SESSION.emp.nombre.split(" ")[0];
-  const rt=$("#uRole");rt.textContent=SESSION.role==="jefe"?"Jefe":"Empleado";
-  rt.className="roletag "+(SESSION.role==="jefe"?"":"emp");
+  const rt=$("#uRole");rt.textContent="";rt.className="roletag hidden";
   $("#gearBtn").classList.toggle("hidden",SESSION.role!=="jefe");
   if(SESSION.role==="jefe"){buildNav();$("#nav").classList.remove("hidden");go("resumen")}
   else{pushLoginEmpleado(SESSION.emp.id);$("#nav").classList.add("hidden");viewPerfil($("#view"))}
@@ -755,8 +748,10 @@ function viewPerfil(v){
   const prox=mine.filter(p=>p.estado==="prox"),hechos=mine.filter(p=>p.estado!=="prox").reverse();
   const nuevos=mine.filter(p=>p.nuevo).length;
   const objs=ST.objetivos.filter(o=>o.para.includes("todos")||o.para.includes(e.id));
-  v.innerHTML=`<div class="phead"><div class="big">${initials(e.nombre)}</div>
-    <div><div class="n">${e.nombre}</div><div class="r">${e.transporte||''}</div></div></div>
+  v.innerHTML=`<div class="phead"><div class="big" id="fotoBig">${avatarInner(e.id,e.nombre)}</div>
+    <div><div class="n">${e.nombre}</div><div class="r">${e.transporte||''}</div>
+    <button class="btn sm ghost" id="cambiarFoto" style="margin-top:6px">📷 Cambiar foto</button></div></div>
+    <input type="file" id="fotoInput" accept="image/*" style="display:none">
     ${nuevos?`<div class="alertbanner">🔔 Tenés <b style="color:var(--yellow)">&nbsp;${nuevos} novedad(es)&nbsp;</b> en tus partidos <button class="btn sm x" id="verVisto">Visto</button></div>`:''}
     <div class="grid kpis" style="margin-top:14px">
       <div class="kpi"><div class="lbl">A cobrar (julio)</div><div class="val gold">${money(L.total)}</div><div class="sub">estimado</div></div>
@@ -775,35 +770,51 @@ function viewPerfil(v){
       </tbody></table></div>
     <div class="sectitle">Mis próximos partidos (${prox.length})</div>
     <div>${prox.length?prox.map(matchCard).join(""):'<div class="empty">Sin partidos próximos</div>'}</div>
-    <div class="sectitle">Mis objetivos</div>
-    <div>${objs.length?objs.map(o=>objCard(o,false)).join(""):'<div class="empty">Sin objetivos</div>'}</div>
+    <div class="sectitle">Mis objetivos <button class="btn sm ghost" id="addMiObj" style="float:right;margin-top:-4px">+ Ponerme uno</button></div>
+    <div id="misObjs">${objs.length?objs.map(o=>objCard(o,o.autor===e.id)).join(""):'<div class="empty">Sin objetivos todavía</div>'}</div>
     <div class="sectitle">Historial</div>
     <div>${hechos.length?hechos.slice(0,8).map(matchCard).join(""):'<div class="empty">—</div>'}</div>
     <div style="text-align:center;margin-top:18px"><button class="btn sm" id="actNotif">🔔 Activar notificaciones</button> <button class="btn ghost sm" id="chgPin">Cambiar mi PIN</button></div>`;
   const vv=$("#verVisto");if(vv)vv.onclick=()=>{ST.partidos.forEach(p=>{if(p.emp===e.id)p.nuevo=false});saveState();viewPerfil(v)};
   $("#actNotif").onclick=pedirPermisoPush;
   $("#chgPin").onclick=()=>changePinModal(e.id);
+  var am=$("#addMiObj");if(am)am.onclick=()=>objModal(null,e.id);
+  var mo=$("#misObjs");if(mo){
+    mo.querySelectorAll(".chk").forEach(c=>c.onclick=()=>{const o=ST.objetivos.find(x=>x.id==c.dataset.obj);o.done=!o.done;saveState();viewPerfil(v)});
+    mo.querySelectorAll("[data-eobj]").forEach(b=>b.onclick=()=>objModal(+b.dataset.eobj,e.id));
+    mo.querySelectorAll("[data-dobj]").forEach(b=>b.onclick=()=>{if(confirm("¿Borrar tu objetivo?")){ST.objetivos=ST.objetivos.filter(x=>x.id!=b.dataset.dobj);saveState();viewPerfil(v)}});
+  }
+  var cf=$("#cambiarFoto");if(cf){cf.onclick=()=>$("#fotoInput").click();
+    $("#fotoInput").onchange=ev=>{const f=ev.target.files[0];if(!f)return;
+      const r=new FileReader();r.onload=()=>{redimFoto(r.result,256,d=>{ST.avatares=ST.avatares||{};ST.avatares[e.id]=d;saveState();viewPerfil(v)})};r.readAsDataURL(f)};}
 }
+/* Achica la foto a un cuadrado chico para que no pese */
+function redimFoto(dataUrl,size,cb){const im=new Image();im.onload=()=>{const c=document.createElement("canvas");c.width=size;c.height=size;const g=c.getContext("2d");const m=Math.min(im.width,im.height);g.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,size,size);cb(c.toDataURL("image/jpeg",0.82))};im.src=dataUrl;}
 
 /* ===================== OBJETIVOS ===================== */
 function objCard(o,admin){
   const quien=o.para.includes("todos")?"Todo el equipo":o.para.map(id=>empById(id)?empById(id).nombre.split(" ")[0]:id).join(", ");
+  const puso=(o.autor&&o.autor!=="jefe")?("🙋 se lo puso "+(empById(o.autor)?empById(o.autor).nombre.split(" ")[0]:o.autor)):"👤 puesto por el jefe";
   return `<div class="obj ${o.done?'done':''}"><div class="chk" data-obj="${o.id}">${o.done?'✓':''}</div>
   <div class="body"><div class="t">${o.titulo}</div><div class="d">${o.detalle}</div>
   <span class="tag ${plazoClass(o.plazo,o.done)}">${plazoTxt(o.plazo,o.done)}</span>
   <span class="tag who">👥 ${quien}</span>
+  <span class="tag who">${puso}</span>
   ${admin?`<span style="float:right"><button class="btn sm ghost" data-eobj="${o.id}">✎</button> <button class="btn sm danger" data-dobj="${o.id}">🗑</button></span>`:''}
   </div></div>`
 }
 function viewObjetivos(v){
-  const g=ST.objetivos.filter(o=>o.para.includes("todos")),i=ST.objetivos.filter(o=>!o.para.includes("todos"));
+  const gen=ST.objetivos.filter(o=>o.para.includes("todos"));
+  const ind=ST.objetivos.filter(o=>!o.para.includes("todos")&&(!o.autor||o.autor==="jefe"));
+  const prop=ST.objetivos.filter(o=>o.autor&&o.autor!=="jefe");
   const done=ST.objetivos.filter(o=>o.done).length,pct=ST.objetivos.length?Math.round(done/ST.objetivos.length*100):0;
-  v.innerHTML=`<div class="pagetitle">Objetivos <small>Grupales e individuales</small></div>
+  v.innerHTML=`<div class="pagetitle">Objetivos <small>De todos, individuales y los que se pone cada uno</small></div>
     <div class="card" style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>Progreso</span><b>${pct}%</b></div>
     <div class="progressbar"><div style="width:${pct}%"></div></div></div>
     <div class="flexbtns" style="margin-bottom:6px"><button class="btn sm" id="addObj">+ Nuevo objetivo</button></div>
-    <div class="sectitle">👥 Grupales (${g.length})</div><div>${g.length?g.map(o=>objCard(o,true)).join(""):'<div class="empty">—</div>'}</div>
-    <div class="sectitle">🙋 Individuales (${i.length})</div><div>${i.length?i.map(o=>objCard(o,true)).join(""):'<div class="empty">—</div>'}</div>`;
+    <div class="sectitle">👥 Generales · de todo el equipo (${gen.length})</div><div>${gen.length?gen.map(o=>objCard(o,true)).join(""):'<div class="empty">—</div>'}</div>
+    <div class="sectitle">🎯 Individuales · que pusiste vos (${ind.length})</div><div>${ind.length?ind.map(o=>objCard(o,true)).join(""):'<div class="empty">—</div>'}</div>
+    <div class="sectitle">🙋 Puestos por el equipo (${prop.length})</div><div>${prop.length?prop.map(o=>objCard(o,true)).join(""):'<div class="empty">Nadie se puso objetivos todavía</div>'}</div>`;
   bindObj(v);$("#addObj").onclick=()=>objModal();
 }
 function bindObj(v){
@@ -811,24 +822,25 @@ function bindObj(v){
   v.querySelectorAll("[data-eobj]").forEach(b=>b.onclick=()=>objModal(+b.dataset.eobj));
   v.querySelectorAll("[data-dobj]").forEach(b=>b.onclick=()=>{if(confirm("¿Borrar objetivo?")){ST.objetivos=ST.objetivos.filter(x=>x.id!=b.dataset.dobj);saveState();go("objetivos")}});
 }
-function objModal(id){
-  const o=id?ST.objetivos.find(x=>x.id===id):{titulo:"",detalle:"",plazo:"2026-08-31",para:["todos"]},nuevo=!id;
+function objModal(id,forEmp){
+  const o=id?ST.objetivos.find(x=>x.id===id):{titulo:"",detalle:"",plazo:"2026-08-31",para:forEmp?[forEmp]:["todos"]},nuevo=!id;
   const opts=[{id:"todos",n:"Todo el equipo"},{id:"jefe",n:"Solo yo (Gastón)"},...ST.empleados.map(e=>({id:e.id,n:e.nombre}))];
-  openModal(`<h3>${nuevo?'Nuevo objetivo':'Editar objetivo'}</h3>
+  const selWho=forEmp?"":`<div class="field"><label>¿Para quién?</label><div id="oWho">${opts.map(op=>`<label class="chkline ${o.para.includes(op.id)?'on':''}"><input type="checkbox" value="${op.id}" ${o.para.includes(op.id)?'checked':''}> ${op.n}</label>`).join("")}</div></div>`;
+  openModal(`<h3>${nuevo?(forEmp?'Ponerme un objetivo':'Nuevo objetivo'):'Editar objetivo'}</h3>
   <div class="field"><label>Título</label><input id="oT" value="${o.titulo}"></div>
   <div class="field"><label>Detalle</label><input id="oD" value="${o.detalle}"></div>
   <div class="field"><label>Plazo</label><input id="oP" type="date" value="${o.plazo}"></div>
-  <div class="field"><label>¿Para quién?</label><div id="oWho">${opts.map(op=>`<label class="chkline ${o.para.includes(op.id)?'on':''}"><input type="checkbox" value="${op.id}" ${o.para.includes(op.id)?'checked':''}> ${op.n}</label>`).join("")}</div></div>
+  ${selWho}
   <div class="flexbtns"><button class="btn" id="oSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`);
-  $("#oWho").querySelectorAll("input").forEach(c=>c.onchange=()=>{
+  if(!forEmp)$("#oWho").querySelectorAll("input").forEach(c=>c.onchange=()=>{
     if(c.value==="todos"&&c.checked)$("#oWho").querySelectorAll("input").forEach(x=>{if(x.value!=="todos"){x.checked=false;x.parentElement.classList.remove("on")}});
     else if(c.value!=="todos"&&c.checked){const t=$("#oWho").querySelector('input[value="todos"]');t.checked=false;t.parentElement.classList.remove("on")}
     c.parentElement.classList.toggle("on",c.checked)});
   $("#oSave").onclick=()=>{const t=$("#oT").value.trim();if(!t)return;
-    const para=[...$("#oWho").querySelectorAll("input:checked")].map(x=>x.value);if(!para.length)para.push("todos");
-    if(nuevo)ST.objetivos.push({id:uid(),titulo:t,detalle:$("#oD").value.trim(),plazo:$("#oP").value,done:false,para});
+    const para=forEmp?[forEmp]:([...$("#oWho").querySelectorAll("input:checked")].map(x=>x.value));if(!para.length)para.push("todos");
+    if(nuevo)ST.objetivos.push({id:uid(),titulo:t,detalle:$("#oD").value.trim(),plazo:$("#oP").value,done:false,para,autor:forEmp||"jefe"});
     else Object.assign(o,{titulo:t,detalle:$("#oD").value.trim(),plazo:$("#oP").value,para});
-    saveState();closeModal();go("objetivos")};
+    saveState();closeModal();if(forEmp)viewPerfil($("#view"));else go("objetivos")};
 }
 
 /* ===================== RESUMEN ===================== */
@@ -996,19 +1008,22 @@ function partidoModal(idx){
   <div class="field"><label>Categoría</label><select id="pCat"></select></div>
   <div class="row2"><div class="field"><label>Cancha</label><input id="pCancha" value="${p.cancha}"></div>
   <div class="field"><label>Camarógrafo</label><select id="pEmp"><option value="">Sin asignar</option>${ST.empleados.filter(e=>e.activo!==false).map(e=>`<option value="${e.id}" ${e.id===p.emp?'selected':''}>${e.nombre}</option>`).join("")}</select></div></div>
-  <div class="field"><label>Editó</label><select id="pEditor"><option value="">Sin asignar</option>${ST.empleados.filter(e=>e.activo!==false&&e.roles&&e.roles.editor).map(e=>`<option value="${e.id}" ${e.id===p.editor?'selected':''}>${e.nombre}</option>`).join("")}</select></div>
-  <label class="chkline ${p.todo?'on':''}"><input type="checkbox" id="pTodo" ${p.todo?'checked':''}> 🚌 Esta categoría filma local y visitante</label>
+  <label class="chkline ${p.todo?'on':''}"><input type="checkbox" id="pTodo" ${p.todo?'checked':''}> 🚌 Filma local y visitante</label>
   <label class="chkline ${p.edi?'on':''}"><input type="checkbox" id="pEdi" ${p.edi?'checked':''}> ✂️ Lleva resumen</label>
-  <div class="row2"><div class="field"><label>Precio (club 1)</label><input id="pPrecio" type="number" value="${p.precio}"></div>
+  <div class="row2"><div class="field"><label>Precio</label><input id="pPrecio" type="number" value="${p.precio}"></div>
   <div class="field"><label>Estado</label><select id="pEst">${[["prox","Próximo"],["film","Filmado"],["entreg","Entregado"]].map(x=>`<option value="${x[0]}" ${x[0]===p.estado?'selected':''}>${x[1]}</option>`).join("")}</select></div></div>
-  <button class="btn sm ghost" id="pAuto" style="margin-bottom:10px">↻ Calcular precio solo</button>
-  <div class="sectitle" style="margin:14px 0 8px">🤝 Segundo equipo (opcional)</div>
-  <div class="row2"><div class="field"><label>Club rival que también paga</label><input id="pClub2" value="${p.club2||''}" placeholder="Nombre del rival"></div>
-  <div class="field"><label>Precio (club 2)</label><input id="pPrecio2" type="number" value="${p.precio2||0}"></div></div>
-  <div class="field"><label>¿Quién lo cerró? (cobra comisión ${ST.tarifas.comisionPct}%)</label>
-  <select id="pCerro"><option value="">Nadie / lo cerré yo</option>${ST.empleados.map(e=>`<option value="${e.id}" ${e.id===p.cerro?'selected':''}>${e.nombre}</option>`).join("")}</select></div>
   <label class="chkline ${p.pagado?'on':''}"><input type="checkbox" id="pPag" ${p.pagado?'checked':''}> 💰 Ya pagaron</label>
   <div class="note" id="pInfo" style="margin-top:10px"></div>
+  <button class="btn sm ghost" id="pMasBtn" style="margin:10px 0 4px">⚙ Más opciones ▾</button>
+  <div id="pMas" style="display:none">
+    <div class="field"><label>Editó (se completa solo)</label><select id="pEditor"><option value="">Sin asignar</option>${ST.empleados.filter(e=>e.activo!==false&&e.roles&&e.roles.editor).map(e=>`<option value="${e.id}" ${e.id===p.editor?'selected':''}>${e.nombre}</option>`).join("")}</select></div>
+    <button class="btn sm ghost" id="pAuto" style="margin-bottom:10px">↻ Recalcular precio</button>
+    <div class="sectitle" style="margin:10px 0 8px">🤝 Segundo equipo (compartido)</div>
+    <div class="row2"><div class="field"><label>Rival que también paga</label><input id="pClub2" value="${p.club2||''}" placeholder="Nombre del rival"></div>
+    <div class="field"><label>Precio (club 2)</label><input id="pPrecio2" type="number" value="${p.precio2||0}"></div></div>
+    <div class="field"><label>¿Quién lo cerró? (comisión ${ST.tarifas.comisionPct}%)</label>
+    <select id="pCerro"><option value="">Nadie / lo cerré yo</option>${ST.empleados.map(e=>`<option value="${e.id}" ${e.id===p.cerro?'selected':''}>${e.nombre}</option>`).join("")}</select></div>
+  </div>
   <div class="flexbtns"><button class="btn" id="pSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button>
   ${nuevo?'':'<button class="btn danger" id="pDel">Borrar</button>'}</div>`);
   function fillCats(sel){
@@ -1051,6 +1066,7 @@ function partidoModal(idx){
     e.target.parentElement.classList.toggle("on",e.target.checked);
     if(id!=="pPag")aplicarPrecio();
   });
+  $("#pMasBtn").onclick=()=>{const m=$("#pMas");const ab=m.style.display==="none";m.style.display=ab?"block":"none";$("#pMasBtn").textContent=ab?"⚙ Menos opciones ▴":"⚙ Más opciones ▾"};
   $("#pAuto").onclick=aplicarPrecio;
   fillCats(p.cat);
   if(nuevo)aplicarPrecio();
