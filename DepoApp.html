@@ -332,10 +332,8 @@ const MOVIMIENTOS_DEF=[
   {id:5,fecha:"2026-07-05",tipo:"EGRESO",concepto:"CapCut + Google",categoria:"Software",monto:25350},
 ];
 
-const OBJETIVOS_DEF=[
-  {id:3,titulo:"Ofrecer el partido compartido al rival",detalle:"Si el club autoriza, ofrecerlo siempre.",plazo:"2026-08-31",done:false,para:["todos"],autor:"jefe"},
-  {id:4,titulo:"Confirmar asignaciones antes del lunes 12hs",detalle:"Responder OK/CAMBIO a tiempo.",plazo:"2026-07-27",done:false,para:["todos"],autor:"jefe"},
-];
+const OBJETIVOS_DEF=[];
+const OBJ_V=2;
 
 /* ===================== PERSISTENCIA ===================== */
 const LS_KEY="depoapp_v5";
@@ -356,7 +354,8 @@ function loadState(){
     partidos:s.partidos||structuredClone(PARTIDOS_DEF),
     fotos:s.fotos||[],
     movimientos:s.movimientos||structuredClone(MOVIMIENTOS_DEF),
-    objetivos:s.objetivos||structuredClone(OBJETIVOS_DEF),
+    objetivos:(s.objetivosV===OBJ_V)?(s.objetivos||[]):structuredClone(OBJETIVOS_DEF),
+    objetivosV:OBJ_V,
     tarifas:(s.tarifas&&s.tarifas.v===TARIFAS_DEF.v)
       ?Object.assign(structuredClone(TARIFAS_DEF),s.tarifas)
       :structuredClone(TARIFAS_DEF),
@@ -430,9 +429,10 @@ async function sincronizar(silencioso){
     saveState(); SYNC_OK=true;
     SYNC_MSG="Excel sincronizado "+new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"});
     if(!silencioso){
-      alert("✅ Sincronizado con el Excel\n\n"+d.total+" partidos leídos\nNuevos: "+res.nuevos+"\nActualizados: "+res.cambios);
-      go(TAB_ACTUAL);
-    }else if(res.nuevos+res.cambios>0){ go(TAB_ACTUAL) }
+      if(SESSION && SESSION.role==="empleado"){ alert("✅ Actualizado"); }
+      else { alert("✅ Sincronizado con el Excel\n\n"+d.total+" partidos leídos\nNuevos: "+res.nuevos+"\nActualizados: "+res.cambios); }
+      refrescarVista();
+    }else if(res.nuevos+res.cambios>0){ refrescarVista() }
   }catch(e){
     SYNC_OK=false; SYNC_MSG="Sin conexión con el Excel";
     if(!silencioso) alert("No pude sincronizar.\n\n"+e.message);
@@ -451,6 +451,8 @@ async function guardarEnExcel(p){
     return await r.json();
   }catch(e){ return{ok:false,error:String(e)} }
 }
+
+function refrescarVista(){ if(SESSION && SESSION.role==="empleado"){ viewPerfil($("#view")); } else if(SESSION){ go(TAB_ACTUAL); } }
 
 /* Sincronización automática: al abrir, cada 3 min, y al volver a la app */
 function arrancarSync(){
