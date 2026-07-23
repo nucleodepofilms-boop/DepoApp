@@ -3,7 +3,7 @@
 /* OneSignal: se integra acá para no tener dos service workers peleando */
 try { importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDKWorker.js"); } catch (e) {}
 
-const CACHE = "depoapp-v10";
+const CACHE = "depoapp-v11";
 const ASSETS = ["./DepoApp.html", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", (e) => {

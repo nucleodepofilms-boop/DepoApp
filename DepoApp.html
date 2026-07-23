@@ -339,6 +339,9 @@ const OBJETIVOS_DEF=[
 
 /* ===================== PERSISTENCIA ===================== */
 const LS_KEY="depoapp_v5";
+/* PIN: se guarda hasheado, no en texto plano, para que nadie lo lea desde la consola */
+function hashPin(pin){var s="depo-salt-2026:"+String(pin);var h=5381;for(var i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))>>>0;}return "h"+h.toString(36);}
+function pinOK(id,entered){var st=(ST.pins||{})[id];if(!st)return false;if(st===hashPin(entered))return true;if(st===entered){ST.pins[id]=hashPin(entered);saveState();return true;}return false;}
 function corregirRoles(lista,vGuardada){
   if(vGuardada===ROLES_V) return lista;
   (lista||[]).forEach(e=>{ if(ROLES_FIX[e.id]) e.roles=Object.assign({},ROLES_FIX[e.id]) });
@@ -359,7 +362,7 @@ function loadState(){
       :structuredClone(TARIFAS_DEF),
     precios:Object.assign(structuredClone(PRECIOS_DEF),s.precios||{}),
     config:Object.assign(structuredClone(CONFIG_DEF),s.config||{}),
-    pins:s.pins||{jefe:"2026"},
+    pins:s.pins||{jefe:hashPin("2026")},
     avatares:s.avatares||{},
     mesLiq:s.mesLiq||"2026-07",
   };
@@ -693,10 +696,10 @@ function submitPin(){
   if(pinBuf.length<4)return;
   if(pinMode==="create"){
     if(!pinFirst){pinFirst=pinBuf;pinBuf="";updateDots();$("#pinRole").textContent="Repetí el PIN";return}
-    if(pinBuf===pinFirst){ST.pins[pinTarget.emp.id]=pinBuf;saveState();SESSION={emp:pinTarget.emp,role:"empleado"};enterApp()}
+    if(pinBuf===pinFirst){ST.pins[pinTarget.emp.id]=hashPin(pinBuf);saveState();SESSION={emp:pinTarget.emp,role:"empleado"};enterApp()}
     else{$("#pinErr").textContent="No coincide";pinFirst="";pinBuf="";updateDots();$("#pinRole").textContent="Creá tu PIN de 4 dígitos"}
     return}
-  const ok=pinTarget.role==="jefe"?pinBuf===ST.pins.jefe:pinBuf===ST.pins[pinTarget.emp.id];
+  const ok=pinOK(pinTarget.role==="jefe"?"jefe":pinTarget.emp.id, pinBuf);
   if(ok){SESSION={emp:pinTarget.emp,role:pinTarget.role};enterApp()}
   else{$("#pinErr").textContent="PIN incorrecto";pinBuf="";updateDots()}
 }
@@ -1193,7 +1196,7 @@ function changePinModal(uidT){
   $("#npS").onclick=()=>{const a=$("#np1").value,b=$("#np2").value;
     if(!/^\d{4}$/.test(a)){$("#npE").textContent="Deben ser 4 dígitos";return}
     if(a!==b){$("#npE").textContent="No coinciden";return}
-    ST.pins[uidT]=a;saveState();closeModal()};
+    ST.pins[uidT]=hashPin(a);saveState();closeModal()};
 }
 
 /* ===================== CHARTS ===================== */
