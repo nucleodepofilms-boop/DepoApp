@@ -1,7 +1,7 @@
 /* DepoApp — Service Worker: instalable + push + auto-actualizacion */
 try { importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDKWorker.js"); } catch (e) {}
 
-const CACHE = "depoapp-v13";
+const CACHE = "depoapp-v14";
 const ASSETS = ["./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", (e) => {

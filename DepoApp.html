@@ -1221,19 +1221,7 @@ function closeModal(){$("#modalRoot").innerHTML=""}
 /* ===================== INIT ===================== */
 renderWho();renderKeys();initPush();arrancarSync();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
-  navigator.serviceWorker.register('sw.js').then(function(reg){
-    reg.update();
-    reg.addEventListener('updatefound',function(){
-      var nw=reg.installing;
-      nw&&nw.addEventListener('statechange',function(){
-        if(nw.state==='installed'&&navigator.serviceWorker.controller){nw.postMessage('skipWaiting');}
-      });
-    });
-  }).catch(function(){});
-  var _recargado=false;
-  navigator.serviceWorker.addEventListener('controllerchange',function(){
-    if(_recargado)return;_recargado=true;location.reload();
-  });
+  navigator.serviceWorker.register('sw.js').then(function(reg){ reg.update(); }).catch(function(){});
 }
 </script>
 </body>
