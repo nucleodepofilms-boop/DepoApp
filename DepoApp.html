@@ -351,19 +351,19 @@ function loadState(){
     empleados:corregirRoles(s.empleados||structuredClone(EMPLEADOS_DEF),s.rolesV),
     rolesV:ROLES_V,
     clubes:s.clubes||structuredClone(CLUBES_DEF),
-    partidos:s.partidos||structuredClone(PARTIDOS_DEF),
+    partidos:(s.partidos||[]).filter(function(p){return String(p.fecha)>="2026-07-28"}),
     fotos:s.fotos||[],
-    movimientos:s.movimientos||structuredClone(MOVIMIENTOS_DEF),
+    movimientos:(s.resetV===2?(s.movimientos||[]):[]),
     objetivos:(s.objetivosV===OBJ_V)?(s.objetivos||[]):structuredClone(OBJETIVOS_DEF),
     objetivosV:OBJ_V,
     tarifas:(s.tarifas&&s.tarifas.v===TARIFAS_DEF.v)
       ?Object.assign(structuredClone(TARIFAS_DEF),s.tarifas)
       :structuredClone(TARIFAS_DEF),
     precios:Object.assign(structuredClone(PRECIOS_DEF),s.precios||{}),
-    config:Object.assign(structuredClone(CONFIG_DEF),s.config||{}),
+    config:Object.assign(structuredClone(CONFIG_DEF),s.config||{},{desdeFecha:(s.config&&s.config.desdeFecha)||"2026-07-28"}),
     pins:s.pins||{jefe:hashPin("2026")},
     avatares:s.avatares||{},
-    mesLiq:s.mesLiq||"2026-07",
+    mesLiq:s.mesLiq||"2026-07",resetV:(s.resetV||2),
   };
 }
 function saveState(){localStorage.setItem(LS_KEY,JSON.stringify(ST))}
