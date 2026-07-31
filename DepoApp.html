@@ -452,7 +452,7 @@ async function guardarEnExcel(p){
   }catch(e){ return{ok:false,error:String(e)} }
 }
 
-function refrescarVista(){ if(SESSION && SESSION.role==="empleado"){ viewPerfil($("#view")); } else if(SESSION){ go(TAB_ACTUAL); } }
+function refrescarVista(){ if(SESSION && SESSION.role==="empleado"){ viewPerfil($("#view")); } else if(SESSION){ go(TAB_ACTUAL); } } async function sincronizarCaja(){if(!(SESSION&&SESSION.role==="jefe"))return;try{const r=await fetch(BACKEND_URL+"?action=caja&token="+encodeURIComponent(BACKEND_TOKEN));const d=await r.json();if(!d.ok)return;const porId={};ST.movimientos.forEach(m=>{if(m.id)porId[m.id]=m});let cambio=false;(d.movs||[]).forEach(x=>{if(!x.id)return;const nm={id:x.id,fecha:x.fecha,tipo:x.tipo,concepto:x.concepto,categoria:x.categoria,monto:+x.monto||0,cuenta:x.cuenta||"depofilms"};const base=porId[x.id];if(base){Object.assign(base,nm);cambio=true}else{ST.movimientos.push(nm);cambio=true}});if(cambio){saveState();if(TAB_ACTUAL==="finanzas")go("finanzas")}}catch(e){}} async function guardarMovExcel(m){try{await fetch(BACKEND_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({token:BACKEND_TOKEN,action:"guardarMov",mov:{id:m.id,fecha:m.fecha,cuenta:m.cuenta||"depofilms",tipo:m.tipo,concepto:m.concepto,categoria:m.categoria,monto:m.monto}})})}catch(e){}} async function borrarMovExcel(id){try{await fetch(BACKEND_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({token:BACKEND_TOKEN,action:"borrarMov",id:id})})}catch(e){}}
 
 /* Sincronización automática: al abrir, cada 3 min, y al volver a la app */
 function arrancarSync(){
@@ -718,7 +718,7 @@ function enterApp(){
   $("#uName").textContent=SESSION.emp.nombre.split(" ")[0];
   const rt=$("#uRole");rt.textContent="";rt.className="roletag hidden";
   $("#gearBtn").classList.toggle("hidden",SESSION.role!=="jefe");
-  if(SESSION.role==="jefe"){buildNav();$("#nav").classList.remove("hidden");go("resumen")}
+  if(SESSION.role==="jefe"){buildNav();$("#nav").classList.remove("hidden");go("resumen");sincronizarCaja()}
   else{pushLoginEmpleado(SESSION.emp.id);$("#nav").classList.add("hidden");viewPerfil($("#view"))}
 }
 function buildNav(){const nav=$("#nav");nav.innerHTML="";
@@ -905,8 +905,8 @@ function movModal(id){
   $("#mT").onchange=fill;fill();
   $("#mSave").onclick=()=>{const d={fecha:$("#mF").value,tipo:$("#mT").value,concepto:$("#mC").value.trim(),categoria:$("#mCat").value,monto:+$("#mM").value||0};
     if(!d.concepto){alert("Poné un concepto");return}
-    if(nuevo)ST.movimientos.push({id:uid(),cuenta:ST.cajaActual||"depofilms",...d});else Object.assign(m,d);saveState();closeModal();go("finanzas")};
-  if(!nuevo)$("#mDel").onclick=()=>{if(confirm("¿Borrar?")){ST.movimientos=ST.movimientos.filter(x=>x.id!==id);saveState();closeModal();go("finanzas")}};
+    const mv=nuevo?{id:uid(),cuenta:ST.cajaActual||"depofilms",...d}:Object.assign(m,d);if(nuevo)ST.movimientos.push(mv);guardarMovExcel(mv);saveState();closeModal();go("finanzas")};
+  if(!nuevo)$("#mDel").onclick=()=>{if(confirm("¿Borrar?")){borrarMovExcel(id);ST.movimientos=ST.movimientos.filter(x=>x.id!==id);saveState();closeModal();go("finanzas")}};
 }
 
 /* ===================== CLIENTES ===================== */
