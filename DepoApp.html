@@ -363,7 +363,7 @@ function loadState(){
     config:Object.assign(structuredClone(CONFIG_DEF),s.config||{},{desdeFecha:(s.config&&s.config.desdeFecha)||"2026-07-28"}),
     pins:s.pins||{jefe:hashPin("2026")},
     avatares:s.avatares||{},
-    mesLiq:s.mesLiq||"2026-07",resetV:(s.resetV||2),
+    mesLiq:s.mesLiq||"2026-07",resetV:(s.resetV||2), cajaActual:s.cajaActual||"depofilms",
   };
 }
 function saveState(){localStorage.setItem(LS_KEY,JSON.stringify(ST))}
@@ -480,9 +480,9 @@ const conAumento=p=>Math.round(p*(1+ST.config.aumentoPct/100));
 /* Total que entra por un partido (incluye 2º equipo si lo hay) */
 const totalPartido=p=>(+p.precio||0)+(+p.precio2||0);
 
-function computeFin(){
+function computeFin(cuenta){
   let ing=0,egr=0;const pm={},pc={};
-  ST.movimientos.forEach(m=>{
+  ST.movimientos.filter(m=>(m.cuenta||"depofilms")===(cuenta||"depofilms")).forEach(m=>{
     const v=+m.monto||0,d=new Date(m.fecha+"T00:00:00");
     const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
     pm[k]=pm[k]||{ing:0,egr:0};
@@ -708,7 +708,7 @@ function submitPin(){
 $("#backWho").onclick=()=>{$("#pinPad").classList.add("hidden");$("#whoStep").classList.remove("hidden");renderWho()};
 
 /* ===================== SHELL ===================== */
-const TABS=[{id:"resumen",ic:"📊",label:"Resumen"},{id:"finanzas",ic:"📈",label:"Finanzas"},
+const TABS=[{id:"resumen",ic:"📊",label:"Resumen"},{id:"finanzas",ic:"💵",label:"Caja"},
   {id:"clientes",ic:"🏆",label:"Clientes"},{id:"asignaciones",ic:"🎥",label:"Partidos"},
   {id:"equipo",ic:"👥",label:"Equipo"},{id:"objetivos",ic:"🎯",label:"Objetivos"}];
 function enterApp(){
@@ -871,8 +871,8 @@ function viewResumen(v){
 
 /* ===================== FINANZAS ===================== */
 function viewFinanzas(v){
-  const F=computeFin(),movs=[...ST.movimientos].sort((a,b)=>a.fecha<b.fecha?1:-1);
-  v.innerHTML=`<div class="pagetitle">Finanzas <small>Todo se calcula de esta planilla</small></div>
+  const CJ=ST.cajaActual||"depofilms",F=computeFin(CJ),movs=[...ST.movimientos].filter(m=>(m.cuenta||"depofilms")===CJ).sort((a,b)=>a.fecha<b.fecha?1:-1);
+  v.innerHTML=`<div class="pagetitle">Caja <small>DepoFilms · Gastón</small></div><div class="flexbtns" style="margin-bottom:12px"><button class="btn ${CJ==='depofilms'?'':'ghost'} sm" data-cj="depofilms">DepoFilms</button><button class="btn ${CJ==='gaston'?'':'ghost'} sm" data-cj="gaston">Gastón</button></div>
     <div class="grid kpis">
       <div class="kpi"><div class="lbl">Ingresos</div><div class="val green">${money(F.totIng)}</div></div>
       <div class="kpi"><div class="lbl">Egresos</div><div class="val red">${money(F.totEgr)}</div></div>
@@ -887,12 +887,12 @@ function viewFinanzas(v){
     </tbody></table></div>`;
   drawNeto("cNeto",F);drawCat("cCat",F);
   v.querySelectorAll("[data-mov]").forEach(r=>r.onclick=()=>movModal(+r.dataset.mov));
-  $("#addMov").onclick=()=>movModal(null);
+  $("#addMov").onclick=()=>movModal(null);v.querySelectorAll("[data-cj]").forEach(b=>b.onclick=()=>{ST.cajaActual=b.dataset.cj;saveState();go("finanzas")});
 }
 const CATS_EGRESO=["Sueldos","Retiro socio","Traslados","Impuestos y cargas","Software","Equipo y mantenimiento","Otros"];
 const CATS_INGRESO=["Cobro filmación","Cobro mensual","Fotografía","Otros"];
 function movModal(id){
-  const nuevo=id==null,m=nuevo?{fecha:"2026-07-20",tipo:"EGRESO",concepto:"",categoria:"Otros",monto:0}:ST.movimientos.find(x=>x.id===id);
+  const nuevo=id==null,m=nuevo?{fecha:hoyISO(),tipo:"EGRESO",concepto:"",categoria:"Otros",monto:0}:ST.movimientos.find(x=>x.id===id);
   openModal(`<h3>${nuevo?'Cargar movimiento':'Editar movimiento'}</h3>
   <div class="row2"><div class="field"><label>Fecha</label><input id="mF" type="date" value="${m.fecha}"></div>
   <div class="field"><label>Tipo</label><select id="mT"><option value="EGRESO" ${m.tipo==='EGRESO'?'selected':''}>Egreso</option><option value="INGRESO" ${m.tipo==='INGRESO'?'selected':''}>Ingreso</option></select></div></div>
@@ -905,7 +905,7 @@ function movModal(id){
   $("#mT").onchange=fill;fill();
   $("#mSave").onclick=()=>{const d={fecha:$("#mF").value,tipo:$("#mT").value,concepto:$("#mC").value.trim(),categoria:$("#mCat").value,monto:+$("#mM").value||0};
     if(!d.concepto){alert("Poné un concepto");return}
-    if(nuevo)ST.movimientos.push({id:uid(),...d});else Object.assign(m,d);saveState();closeModal();go("finanzas")};
+    if(nuevo)ST.movimientos.push({id:uid(),cuenta:ST.cajaActual||"depofilms",...d});else Object.assign(m,d);saveState();closeModal();go("finanzas")};
   if(!nuevo)$("#mDel").onclick=()=>{if(confirm("¿Borrar?")){ST.movimientos=ST.movimientos.filter(x=>x.id!==id);saveState();closeModal();go("finanzas")}};
 }
 
