@@ -253,10 +253,10 @@ const PRECIOS_DEF={
 
 /* Config comercial: porcentajes, editables */
 const CONFIG_DEF={ aumentoPct:15, compartidoPct:70, descuentoAbonoPct:5,
-  canchasLejanas:["BANCO MENDOZA"],
+  canchasLejanas:["BANCO MENDOZA","SAN PABLO","COLONIA"],
   /* quien edita lo que filma cada uno */
   editorPorCamara:{ enzo:"enzo", luca:"enzo", agus:"enzo",
-                    santi:"santi", facu:"santi", giu:"santi" } };
+                    santi:"santi", facu:"santi", giu:"santi", gaston:"santi" } };
 
 /* Roles reales del equipo. Subir ROLES_V corrige lo que este mal cargado. */
 const ROLES_V=2;
@@ -363,11 +363,21 @@ function loadState(){
     config:Object.assign(structuredClone(CONFIG_DEF),s.config||{},{desdeFecha:(s.config&&s.config.desdeFecha)||"2026-07-28"}),
     pins:s.pins||{jefe:hashPin("2026")},
     avatares:s.avatares||{},
-    mesLiq:s.mesLiq||"2026-07",resetV:(s.resetV||2), cajaActual:s.cajaActual||"depofilms", wipeV:s.wipeV,
+    mesLiq:s.mesLiq||"2026-07",resetV:(s.resetV||2), cajaActual:s.cajaActual||"depofilms", wipeV:s.wipeV, migV:s.migV,
   };
 }
 function saveState(){localStorage.setItem(LS_KEY,JSON.stringify(ST))}
 let ST=loadState();(function wipeAgosto(){ if(ST.wipeV===3) return; ST.wipeV=3; ST.pins={jefe:hashPin("2026")}; ST.objetivos=[]; ST.avatares={}; ST.movimientos=[]; ST.fotos=[]; ST.partidos=(ST.partidos||[]).filter(function(p){return String(p.fecha)>="2026-08-01"}); ST.config.desdeFecha="2026-08-01"; ST.mesLiq="2026-08"; saveState(); })();
+(function migEntrega(){ if(ST.migV===1) return; ST.migV=1;
+  /* partidos: nuevo estado de entrega para el editor; los ya pasados quedan como Filmado (esperan que marquen Entregado) */
+  (ST.partidos||[]).forEach(function(p){ if(p.estadoEdit===undefined) p.estadoEdit="pend"; if(p.estado==="entreg" && !p._entOk) { /* respeta lo ya entregado */ } });
+  /* sumar las canchas lejanas nuevas sin pisar lo que el jefe haya cargado */
+  ST.config.canchasLejanas=ST.config.canchasLejanas||[];
+  ["BANCO MENDOZA","SAN PABLO","COLONIA"].forEach(function(x){ if(!ST.config.canchasLejanas.some(function(y){return String(y).toUpperCase()===x})) ST.config.canchasLejanas.push(x); });
+  /* asegurar el mapa de editores por camarógrafo */
+  ST.config.editorPorCamara=Object.assign({ enzo:"enzo",luca:"enzo",agus:"enzo",santi:"santi",facu:"santi",giu:"santi",gaston:"santi" }, ST.config.editorPorCamara||{});
+  saveState();
+})();
 
 /* ===================== SINCRONIZACIÓN CON EL EXCEL =====================
    Lee y escribe la hoja "Asignaciones" del Google Sheet a través del
@@ -410,10 +420,14 @@ function aplicarRemotos(lista){
       if(base.fecha!==r.fecha||base.hora!==r.hora||base.cancha!==r.cancha||base.emp!==emp) cambios++;
       Object.assign(base,{fecha:r.fecha,hora:r.hora,cancha:r.cancha,club:clubCanonico(r.club),cat:r.cat,
         precio:r.precio,emp:emp,editor:editor,edi:r.edi,todo:!!r.todo,pagado:r.pagado});
+      /* El estado de ENTREGA lo maneja cada persona; solo lo piso si el backend lo trae */
+      if(r.estado)     base.estado=r.estado;
+      if(r.estadoEdit) base.estadoEdit=r.estadoEdit;
+      if(base.estadoEdit===undefined) base.estadoEdit="pend";
     }else{
       ST.partidos.push({id:r.id,fecha:r.fecha,hora:r.hora,cancha:r.cancha,club:clubCanonico(r.club),cat:r.cat,
         precio:r.precio,emp:emp,editor:editor,edi:r.edi,todo:!!r.todo,pagado:r.pagado,
-        estado:r.fecha<hoy?"entreg":"prox",club2:"",precio2:0,cerro:""});
+        estado:r.estado||(r.fecha<hoy?"film":"prox"),estadoEdit:r.estadoEdit||"pend",club2:"",precio2:0,cerro:""});
       nuevos++;
     }
   });
@@ -447,7 +461,8 @@ async function guardarEnExcel(p){
       body:JSON.stringify({token:BACKEND_TOKEN,action:"guardarPartido",partido:{
         id:p.id,fecha:p.fecha,hora:p.hora,cancha:p.cancha,club:p.club,cat:p.cat,
         precio:p.precio,emp:nombrePorEmpId(p.emp),empId:p.emp,
-        editor:nombrePorEmpId(p.editor),edi:p.edi,todo:!!p.todo,pagado:p.pagado}})});
+        editor:nombrePorEmpId(p.editor),editorId:p.editor,edi:p.edi,todo:!!p.todo,pagado:p.pagado,
+        estado:p.estado||"",estadoEdit:p.estadoEdit||""}})});
     return await r.json();
   }catch(e){ return{ok:false,error:String(e)} }
 }
@@ -528,21 +543,23 @@ function esLejana(cancha){
 
 /* Liquidación de un empleado en el mes — se calcula sola, no se toca nada a mano */
 function liquidacion(empId,ym){
-  ym=ym||"2026-07";
+  ym=ym||ST.mesLiq||"2026-08";
   const e=empById(empId)||{},t=ST.tarifas;
   const delMes=x=>x.fecha&&String(x.fecha).startsWith(ym);
 
-  /* Filmación */
+  /* Filmación — SOLO cuenta cuando el camarógrafo marcó ENTREGADO */
   const mios=ST.partidos.filter(p=>p.emp===empId&&delMes(p));
-  const filmacion=mios.length*(+t.porPartido||0);
+  const miosEnt=mios.filter(p=>p.estado==="entreg");
+  const pendFilm=mios.filter(p=>p.estado==="film");
+  const filmacion=miosEnt.length*(+t.porPartido||0);
 
   /* Fotos */
   const fotos=(ST.fotos||[]).filter(f=>f.fotografo===empId&&delMes(f));
   const fotoPago=fotos.length*(+t.fotoPorSesion||0);
 
-  /* Transporte: UNA vez por día, sume filmación y/o fotos ese día */
+  /* Transporte: UNA vez por día. Solo suma por partidos ya ENTREGADOS y/o fotos */
   const dias={};
-  mios.forEach(p=>{(dias[p.fecha]=dias[p.fecha]||[]).push(p.cancha)});
+  miosEnt.forEach(p=>{(dias[p.fecha]=dias[p.fecha]||[]).push(p.cancha)});
   fotos.forEach(f=>{(dias[f.fecha]=dias[f.fecha]||[]).push(f.cancha)});
   const salidas=Object.keys(dias).length;
   let plusLejana=0;
@@ -551,21 +568,23 @@ function liquidacion(empId,ym){
   });
   const transporte=salidas*(+t.transporte||0)+plusLejana;
 
-  /* Edición */
-  const editados=ST.partidos.filter(p=>p.editor===empId&&delMes(p));
-  const edicion=editados.length*(+t.edicion||0);
+  /* Edición — SOLO cuenta cuando el editor marcó ENTREGADO */
+  const editados=ST.partidos.filter(p=>p.editor===empId&&delMes(p)&&p.estado!=="prox");
+  const editadosEnt=editados.filter(p=>p.estadoEdit==="entreg");
+  const pendEdit=editados.filter(p=>p.estadoEdit!=="entreg");
+  const edicion=editadosEnt.length*(+t.edicion||0);
 
   /* Redes: único fijo que queda */
   const redes=(e.roles&&e.roles.redes)?(+t.redes||0):0;
 
-  /* Comisión por cerrar el 2º equipo */
-  const cerrados=ST.partidos.filter(p=>p.cerro===empId&&delMes(p));
+  /* Comisión por cerrar el 2º equipo — solo cuando ese partido está ENTREGADO */
+  const cerrados=ST.partidos.filter(p=>p.cerro===empId&&delMes(p)&&p.estado==="entreg");
   const comision=Math.round(cerrados.reduce((a,p)=>a+(+p.precio2||0)*(+t.comisionPct||0)/100,0));
 
   return{
-    partidos:mios.length, filmacion,
+    partidos:mios.length, nEntreg:miosEnt.length, pendFilm:pendFilm.length, filmacion,
     salidas, plusLejana, transporte,
-    nEdit:editados.length, edicion,
+    nEdit:editadosEnt.length, pendEdit:pendEdit.length, edicion,
     nFotos:fotos.length, fotoPago,
     redes, comision,
     total:filmacion+transporte+edicion+fotoPago+redes+comision
@@ -577,7 +596,7 @@ function liquidacion(empId,ym){
    listo para mandar por WhatsApp. Sin librerías: canvas puro.     */
 function filasLiq(L){
   const f=[];
-  if(L.partidos) f.push([L.partidos+" partidos filmados", L.filmacion]);
+  if(L.nEntreg) f.push([L.nEntreg+" partidos entregados", L.filmacion]);
   if(L.nFotos)   f.push([L.nFotos+" sesiones de fotos",   L.fotoPago]);
   if(L.salidas)  f.push([L.salidas+" salidas"+(L.plusLejana?" (+ cancha lejana)":""), L.transporte]);
   if(L.nEdit)    f.push([L.nEdit+" partidos editados",    L.edicion]);
@@ -744,10 +763,23 @@ function matchCard(p){
   <div class="right">${p.nuevo?'<span class="pill nuevo">🔔 NUEVO</span><br>':''}<div class="pill ${est[0]}" style="margin-top:${p.nuevo?'6px':'0'}">${est[1]}</div><br>
   <span class="pill ${p.edi?'edi':'noedi'}" style="margin-top:6px">${p.edi?'CON EDI':'SIN EDI'}</span></div></div>`
 }
+/* Tarjeta con botón Entregar (para camarógrafo o editor) */
+function entregaCard(p,tipo){
+  const f=fdShort(p.fecha);
+  const attr=tipo==="editar"?`data-editar="${p.id}"`:`data-entregar="${p.id}"`;
+  return `<div class="match"><div class="day"><div class="d">${f.d}</div><div class="m">${f.m}</div></div>
+  <div class="info"><div class="club">${p.club} <span style="color:var(--muted);font-weight:500">· ${p.cat}</span></div>
+  <div class="meta">🕘 ${p.hora} · 📍 ${p.cancha}${p.club2?' · 🤝 '+p.club2:''}</div></div>
+  <div class="right"><button class="btn sm" ${attr}>✅ Entregar</button></div></div>`
+}
 function viewPerfil(v){
   const e=SESSION.emp,L=liquidacion(e.id);
+  const mesNom=(()=>{const ym=(ST.mesLiq||"2026-08").split("-");return MESN[+ym[1]-1]})();
   const mine=ST.partidos.filter(p=>p.emp===e.id).sort((a,b)=>a.fecha<b.fecha?-1:1);
   const prox=mine.filter(p=>p.estado==="prox"),hechos=mine.filter(p=>p.estado!=="prox").reverse();
+  const paraEntregar=mine.filter(p=>p.estado==="film");
+  const soyEditor=!!(e.roles&&e.roles.editor);
+  const paraEditar=soyEditor?ST.partidos.filter(p=>p.editor===e.id&&p.estado!=="prox"&&p.estadoEdit!=="entreg").sort((a,b)=>a.fecha<b.fecha?-1:1):[];
   const nuevos=mine.filter(p=>p.nuevo).length;
   const objs=ST.objetivos.filter(o=>o.para.includes("todos")||o.para.includes(e.id));
   v.innerHTML=`<div class="phead"><div class="big" id="fotoBig">${avatarInner(e.id,e.nombre)}</div>
@@ -756,13 +788,13 @@ function viewPerfil(v){
     <input type="file" id="fotoInput" accept="image/*" style="display:none">
     ${nuevos?`<div class="alertbanner">🔔 Tenés <b style="color:var(--yellow)">&nbsp;${nuevos} novedad(es)&nbsp;</b> en tus partidos <button class="btn sm x" id="verVisto">Visto</button></div>`:''}
     <div class="grid kpis" style="margin-top:14px">
-      <div class="kpi"><div class="lbl">A cobrar (julio)</div><div class="val gold">${money(L.total)}</div><div class="sub">estimado</div></div>
-      <div class="kpi"><div class="lbl">Partidos del mes</div><div class="val">${L.partidos}</div></div>
+      <div class="kpi"><div class="lbl">A cobrar (${mesNom})</div><div class="val gold">${money(L.total)}</div><div class="sub">solo lo entregado</div></div>
+      <div class="kpi"><div class="lbl">Partidos del mes</div><div class="val">${L.partidos}</div>${L.pendFilm?`<div class="sub">${L.pendFilm} sin entregar</div>`:''}</div>
       <div class="kpi"><div class="lbl">Comisiones</div><div class="val">${money(L.comision)}</div><div class="sub">2º equipo</div></div>
       <div class="kpi"><div class="lbl">Próximos</div><div class="val">${prox.length}</div></div></div>
     <div class="card" style="margin-top:14px"><div class="sectitle" style="margin-top:0">Cómo se compone</div>
       <table><tbody>
-        ${L.partidos?`<tr><td>${L.partidos} partidos filmados</td><td class="num">${money(L.filmacion)}</td></tr>`:''}
+        ${L.nEntreg?`<tr><td>${L.nEntreg} partidos entregados</td><td class="num">${money(L.filmacion)}</td></tr>`:''}
         ${L.nFotos?`<tr><td>${L.nFotos} sesiones de fotos</td><td class="num">${money(L.fotoPago)}</td></tr>`:''}
         ${L.salidas?`<tr><td>${L.salidas} salidas${L.plusLejana?' (+ cancha lejana)':''}</td><td class="num">${money(L.transporte)}</td></tr>`:''}
         ${L.nEdit?`<tr><td>${L.nEdit} partidos editados</td><td class="num">${money(L.edicion)}</td></tr>`:''}
@@ -770,6 +802,12 @@ function viewPerfil(v){
         ${L.comision?`<tr><td>Comisiones 2º equipo</td><td class="num">${money(L.comision)}</td></tr>`:''}
         <tr><td><b>Total</b></td><td class="num" style="color:var(--yellow)"><b>${money(L.total)}</b></td></tr>
       </tbody></table></div>
+    ${paraEntregar.length?`<div class="sectitle">✅ Para entregar (${paraEntregar.length})</div>
+    <div class="note">Cuando termines de subir el partido, tocá <b>Entregar</b>. Ahí se te suma la plata.</div>
+    <div>${paraEntregar.map(p=>entregaCard(p,"entregar")).join("")}</div>`:''}
+    ${soyEditor&&paraEditar.length?`<div class="sectitle">✂️ Para editar (${paraEditar.length})</div>
+    <div class="note">Cuando termines la edición, tocá <b>Entregar</b>. Ahí se te suma la edición.</div>
+    <div>${paraEditar.map(p=>entregaCard(p,"editar")).join("")}</div>`:''}
     <div class="sectitle">Mis próximos partidos (${prox.length})</div>
     <div>${prox.length?prox.map(matchCard).join(""):'<div class="empty">Sin partidos próximos</div>'}</div>
     <div class="sectitle">Mis objetivos <button class="btn sm ghost" id="addMiObj" style="float:right;margin-top:-4px">+ Ponerme uno</button></div>
@@ -780,6 +818,14 @@ function viewPerfil(v){
   const vv=$("#verVisto");if(vv)vv.onclick=()=>{ST.partidos.forEach(p=>{if(p.emp===e.id)p.nuevo=false});saveState();viewPerfil(v)};
   $("#actNotif").onclick=pedirPermisoPush;
   $("#chgPin").onclick=()=>changePinModal(e.id);
+  v.querySelectorAll("[data-entregar]").forEach(b=>b.onclick=()=>{
+    const p=ST.partidos.find(x=>x.id===b.dataset.entregar); if(!p)return;
+    p.estado="entreg"; p.nuevo=false; saveState(); guardarEnExcel(p); viewPerfil(v);
+  });
+  v.querySelectorAll("[data-editar]").forEach(b=>b.onclick=()=>{
+    const p=ST.partidos.find(x=>x.id===b.dataset.editar); if(!p)return;
+    p.estadoEdit="entreg"; saveState(); guardarEnExcel(p); viewPerfil(v);
+  });
   var am=$("#addMiObj");if(am)am.onclick=()=>objModal(null,e.id);
   var mo=$("#misObjs");if(mo){
     mo.querySelectorAll(".chk").forEach(c=>c.onclick=()=>{const o=ST.objetivos.find(x=>x.id==c.dataset.obj);o.done=!o.done;saveState();viewPerfil(v)});
@@ -1001,7 +1047,7 @@ function viewAsignaciones(v){
 }
 function partidoModal(idx){
   const nuevo=idx==null;
-  const p=nuevo?{fecha:"2026-07-25",hora:"21:00",cancha:"",club:"",cat:"",emp:"",editor:"",edi:false,todo:false,estado:"prox",precio:0,pagado:false,club2:"",precio2:0,cerro:""}:ST.partidos[idx];
+  const p=nuevo?{fecha:hoyISO(),hora:"21:00",cancha:"",club:"",cat:"",emp:"",editor:"",edi:false,todo:false,estado:"prox",estadoEdit:"pend",precio:0,pagado:false,club2:"",precio2:0,cerro:""}:ST.partidos[idx];
   const clubs=ST.clubes.filter(c=>c.estado!=="INACTIVO");
   openModal(`<h3>${nuevo?'Anotar partido':'Editar partido'}</h3>
   <div class="row2"><div class="field"><label>Fecha</label><input id="pF" type="date" value="${p.fecha}"></div>
@@ -1020,11 +1066,12 @@ function partidoModal(idx){
   <div id="pMas" style="display:none">
     <div class="field"><label>Editó (se completa solo)</label><select id="pEditor"><option value="">Sin asignar</option>${ST.empleados.filter(e=>e.activo!==false&&e.roles&&e.roles.editor).map(e=>`<option value="${e.id}" ${e.id===p.editor?'selected':''}>${e.nombre}</option>`).join("")}</select></div>
     <button class="btn sm ghost" id="pAuto" style="margin-bottom:10px">↻ Recalcular precio</button>
-    <div class="sectitle" style="margin:10px 0 8px">🤝 Segundo equipo (compartido)</div>
+    <div class="sectitle" style="margin:10px 0 8px">🤝 Compartido (2º equipo)</div>
+    <div class="note">Si el rival también paga, cargá cuánto paga. El ${ST.tarifas.comisionPct}% de comisión lo cobra el camarógrafo, salvo que elijas a otro.</div>
     <div class="row2"><div class="field"><label>Rival que también paga</label><input id="pClub2" value="${p.club2||''}" placeholder="Nombre del rival"></div>
-    <div class="field"><label>Precio (club 2)</label><input id="pPrecio2" type="number" value="${p.precio2||0}"></div></div>
-    <div class="field"><label>¿Quién lo cerró? (comisión ${ST.tarifas.comisionPct}%)</label>
-    <select id="pCerro"><option value="">Nadie / lo cerré yo</option>${ST.empleados.map(e=>`<option value="${e.id}" ${e.id===p.cerro?'selected':''}>${e.nombre}</option>`).join("")}</select></div>
+    <div class="field"><label>¿Cuánto paga? ($)</label><input id="pPrecio2" type="number" value="${p.precio2||0}"></div></div>
+    <div class="field"><label>Lo cerró (cobra la comisión)</label>
+    <select id="pCerro"><option value="">El camarógrafo del partido</option>${ST.empleados.map(e=>`<option value="${e.id}" ${e.id===p.cerro?'selected':''}>${e.nombre}</option>`).join("")}</select></div>
   </div>
   <div class="flexbtns"><button class="btn" id="pSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button>
   ${nuevo?'':'<button class="btn danger" id="pDel">Borrar</button>'}</div>`);
@@ -1076,11 +1123,13 @@ function partidoModal(idx){
     const c=ST.clubes.find(x=>x.club===$("#pClub").value);
     const ct=c&&c.cats.find(x=>x.cat===$("#pCat").value);
     if(!c||!ct){alert("Elegí club y categoría");return}
+    const precio2=+$("#pPrecio2").value||0;
+    const cerro=precio2>0?($("#pCerro").value||$("#pEmp").value):$("#pCerro").value;
     const d={fecha:$("#pF").value,hora:$("#pH").value.trim(),cancha:$("#pCancha").value.trim(),club:c.club,cat:ct.cat,
       emp:$("#pEmp").value,editor:$("#pEditor").value||editorDe($("#pEmp").value),
       edi:$("#pEdi").checked,todo:$("#pTodo").checked,
-      estado:$("#pEst").value,precio:+$("#pPrecio").value||0,
-      club2:$("#pClub2").value.trim(),precio2:+$("#pPrecio2").value||0,cerro:$("#pCerro").value,
+      estado:$("#pEst").value,estadoEdit:(nuevo?"pend":(p.estadoEdit||"pend")),precio:+$("#pPrecio").value||0,
+      club2:$("#pClub2").value.trim(),precio2:precio2,cerro:cerro,
       pagado:$("#pPag").checked,nuevo:true};
     let dest;
     if(nuevo){ d.id="DA"+Date.now(); ST.partidos.push(d); dest=d }
