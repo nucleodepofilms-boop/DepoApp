@@ -363,11 +363,11 @@ function loadState(){
     config:Object.assign(structuredClone(CONFIG_DEF),s.config||{},{desdeFecha:(s.config&&s.config.desdeFecha)||"2026-07-28"}),
     pins:s.pins||{jefe:hashPin("2026")},
     avatares:s.avatares||{},
-    mesLiq:s.mesLiq||"2026-07",resetV:(s.resetV||2), cajaActual:s.cajaActual||"depofilms",
+    mesLiq:s.mesLiq||"2026-07",resetV:(s.resetV||2), cajaActual:s.cajaActual||"depofilms", wipeV:s.wipeV,
   };
 }
 function saveState(){localStorage.setItem(LS_KEY,JSON.stringify(ST))}
-let ST=loadState();
+let ST=loadState();(function wipeAgosto(){ if(ST.wipeV===3) return; ST.wipeV=3; ST.pins={jefe:hashPin("2026")}; ST.objetivos=[]; ST.avatares={}; ST.movimientos=[]; ST.fotos=[]; ST.partidos=(ST.partidos||[]).filter(function(p){return String(p.fecha)>="2026-08-01"}); ST.config.desdeFecha="2026-08-01"; ST.mesLiq="2026-08"; saveState(); })();
 
 /* ===================== SINCRONIZACIÓN CON EL EXCEL =====================
    Lee y escribe la hoja "Asignaciones" del Google Sheet a través del
