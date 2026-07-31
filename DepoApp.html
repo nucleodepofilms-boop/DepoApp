@@ -579,7 +579,7 @@ function liquidacion(empId,ym){
 
   /* Comisión por cerrar el 2º equipo — solo cuando ese partido está ENTREGADO */
   const cerrados=ST.partidos.filter(p=>p.cerro===empId&&delMes(p)&&p.estado==="entreg");
-  const comision=Math.round(cerrados.reduce((a,p)=>a+(+p.precio2||0)*(+t.comisionPct||0)/100,0));
+  const comision=Math.round(cerrados.reduce((a,p)=>a+((+p.precio||0)+(+p.precio2||0))*(+t.comisionPct||0)/100,0));
 
   return{
     partidos:mios.length, nEntreg:miosEnt.length, pendFilm:pendFilm.length, filmacion,
@@ -1067,7 +1067,7 @@ function partidoModal(idx){
     <div class="field"><label>Editó (se completa solo)</label><select id="pEditor"><option value="">Sin asignar</option>${ST.empleados.filter(e=>e.activo!==false&&e.roles&&e.roles.editor).map(e=>`<option value="${e.id}" ${e.id===p.editor?'selected':''}>${e.nombre}</option>`).join("")}</select></div>
     <button class="btn sm ghost" id="pAuto" style="margin-bottom:10px">↻ Recalcular precio</button>
     <div class="sectitle" style="margin:10px 0 8px">🤝 Compartido (2º equipo)</div>
-    <div class="note">Si el rival también paga, cargá cuánto paga. El ${ST.tarifas.comisionPct}% de comisión lo cobra el camarógrafo, salvo que elijas a otro.</div>
+    <div class="note">Si el rival también paga, cargá cuánto paga cada equipo. El ${ST.tarifas.comisionPct}% de comisión sale solo sobre la suma de los dos, y lo cobra el camarógrafo salvo que elijas a otro.</div>
     <div class="row2"><div class="field"><label>Rival que también paga</label><input id="pClub2" value="${p.club2||''}" placeholder="Nombre del rival"></div>
     <div class="field"><label>¿Cuánto paga? ($)</label><input id="pPrecio2" type="number" value="${p.precio2||0}"></div></div>
     <div class="field"><label>Lo cerró (cobra la comisión)</label>
