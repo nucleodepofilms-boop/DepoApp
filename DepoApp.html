@@ -458,17 +458,18 @@ async function sincronizar(silencioso){
   }
 }
 
-/* Guarda un partido en el Excel. El backend avisa al empleado por push. */
+/* Guarda un partido en el Excel. El backend avisa al empleado por push.
+   Se hace por GET (más confiable que POST con Apps Script desde el navegador). */
 async function guardarEnExcel(p){
   try{
-    const r=await fetch(BACKEND_URL,{method:"POST",
-      headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify({token:BACKEND_TOKEN,action:"guardarPartido",partido:{
-        id:p.id,fecha:p.fecha,hora:p.hora,cancha:p.cancha,club:p.club,cat:p.cat,
-        precio:p.precio,emp:nombrePorEmpId(p.emp),empId:p.emp,
-        editor:nombrePorEmpId(p.editor),editorId:p.editor,edi:p.edi,todo:!!p.todo,pagado:p.pagado,
-        estado:p.estado||"",estadoEdit:p.estadoEdit||"",
-        entregado:(p.estado==="entreg"),editado:(p.estadoEdit==="entreg")}})});
+    const partido={
+      id:p.id,fecha:p.fecha,hora:p.hora,cancha:p.cancha,club:p.club,cat:p.cat,
+      precio:p.precio,emp:nombrePorEmpId(p.emp),empId:p.emp,
+      editor:nombrePorEmpId(p.editor),editorId:p.editor,edi:p.edi,todo:!!p.todo,pagado:p.pagado,
+      estado:p.estado||"",estadoEdit:p.estadoEdit||"",
+      entregado:(p.estado==="entreg"),editado:(p.estadoEdit==="entreg")};
+    const url=BACKEND_URL+"?action=guardar&token="+encodeURIComponent(BACKEND_TOKEN)+"&data="+encodeURIComponent(JSON.stringify(partido));
+    const r=await fetch(url);
     return await r.json();
   }catch(e){ return{ok:false,error:String(e)} }
 }
