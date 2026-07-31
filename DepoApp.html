@@ -368,9 +368,13 @@ function loadState(){
 }
 function saveState(){localStorage.setItem(LS_KEY,JSON.stringify(ST))}
 let ST=loadState();(function wipeAgosto(){ if(ST.wipeV===3) return; ST.wipeV=3; ST.pins={jefe:hashPin("2026")}; ST.objetivos=[]; ST.avatares={}; ST.movimientos=[]; ST.fotos=[]; ST.partidos=(ST.partidos||[]).filter(function(p){return String(p.fecha)>="2026-08-01"}); ST.config.desdeFecha="2026-08-01"; ST.mesLiq="2026-08"; saveState(); })();
-(function migEntrega(){ if(ST.migV===1) return; ST.migV=1;
-  /* partidos: nuevo estado de entrega para el editor; los ya pasados quedan como Filmado (esperan que marquen Entregado) */
-  (ST.partidos||[]).forEach(function(p){ if(p.estadoEdit===undefined) p.estadoEdit="pend"; if(p.estado==="entreg" && !p._entOk) { /* respeta lo ya entregado */ } });
+(function migEntrega(){ if(ST.migV>=2) return; ST.migV=2;
+  var _hoy=new Date().toISOString().slice(0,10);
+  /* partidos: agrega estado de entrega del editor y repara estados inválidos (ej. "ASIGNADO" que venía del Excel) */
+  (ST.partidos||[]).forEach(function(p){
+    if(p.estadoEdit===undefined) p.estadoEdit="pend";
+    if(["prox","film","entreg"].indexOf(p.estado)<0){ p.estado=(String(p.fecha)<_hoy?"film":"prox"); }
+  });
   /* sumar las canchas lejanas nuevas sin pisar lo que el jefe haya cargado */
   ST.config.canchasLejanas=ST.config.canchasLejanas||[];
   ["BANCO MENDOZA","SAN PABLO","COLONIA"].forEach(function(x){ if(!ST.config.canchasLejanas.some(function(y){return String(y).toUpperCase()===x})) ST.config.canchasLejanas.push(x); });
@@ -420,14 +424,15 @@ function aplicarRemotos(lista){
       if(base.fecha!==r.fecha||base.hora!==r.hora||base.cancha!==r.cancha||base.emp!==emp) cambios++;
       Object.assign(base,{fecha:r.fecha,hora:r.hora,cancha:r.cancha,club:clubCanonico(r.club),cat:r.cat,
         precio:r.precio,emp:emp,editor:editor,edi:r.edi,todo:!!r.todo,pagado:r.pagado});
-      /* El estado de ENTREGA lo maneja cada persona; solo lo piso si el backend lo trae */
-      if(r.estado)     base.estado=r.estado;
-      if(r.estadoEdit) base.estadoEdit=r.estadoEdit;
+      /* ENTREGA: solo desde columnas dedicadas del Excel (entregado/editado). NUNCA desde el estado de asignación. Nunca baja lo ya entregado. */
+      if(r.entregado) base.estado="entreg";
+      else if(base.estado!=="entreg") base.estado=(r.fecha<hoy?"film":"prox");
+      if(r.editado) base.estadoEdit="entreg";
       if(base.estadoEdit===undefined) base.estadoEdit="pend";
     }else{
       ST.partidos.push({id:r.id,fecha:r.fecha,hora:r.hora,cancha:r.cancha,club:clubCanonico(r.club),cat:r.cat,
         precio:r.precio,emp:emp,editor:editor,edi:r.edi,todo:!!r.todo,pagado:r.pagado,
-        estado:r.estado||(r.fecha<hoy?"film":"prox"),estadoEdit:r.estadoEdit||"pend",club2:"",precio2:0,cerro:""});
+        estado:(r.entregado?"entreg":(r.fecha<hoy?"film":"prox")),estadoEdit:(r.editado?"entreg":"pend"),club2:"",precio2:0,cerro:""});
       nuevos++;
     }
   });
@@ -462,7 +467,8 @@ async function guardarEnExcel(p){
         id:p.id,fecha:p.fecha,hora:p.hora,cancha:p.cancha,club:p.club,cat:p.cat,
         precio:p.precio,emp:nombrePorEmpId(p.emp),empId:p.emp,
         editor:nombrePorEmpId(p.editor),editorId:p.editor,edi:p.edi,todo:!!p.todo,pagado:p.pagado,
-        estado:p.estado||"",estadoEdit:p.estadoEdit||""}})});
+        estado:p.estado||"",estadoEdit:p.estadoEdit||"",
+        entregado:(p.estado==="entreg"),editado:(p.estadoEdit==="entreg")}})});
     return await r.json();
   }catch(e){ return{ok:false,error:String(e)} }
 }
