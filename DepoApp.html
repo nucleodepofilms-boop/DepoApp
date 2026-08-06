@@ -74,6 +74,8 @@
   .phead .n{font-size:20px;font-weight:800}.phead .r{color:var(--muted);font-size:13px;margin-top:2px}
   .alertbanner{display:flex;align-items:center;gap:10px;background:#2a2408;border:1px solid var(--yellow);border-radius:14px;padding:12px 14px;margin:14px 0;font-weight:600;font-size:14px}
   .alertbanner .x{margin-left:auto}
+  .notifbanner{display:flex;align-items:center;gap:12px;background:var(--yellow);color:#111;border-radius:14px;padding:14px 16px;margin:14px 0}
+  .notifbanner b{font-size:15px}
   .match{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
   .match.nuevo{border-color:var(--yellow);box-shadow:0 0 0 1px var(--yellow) inset}
   .match .day{width:50px;text-align:center;flex-shrink:0}
@@ -430,7 +432,7 @@ function aplicarRemotos(lista){
     if(base){
       if(base.fecha!==r.fecha||base.hora!==r.hora||base.cancha!==r.cancha||base.emp!==emp){ cambios++; base.nuevo=true; }
       Object.assign(base,{fecha:r.fecha,hora:r.hora,cancha:r.cancha,club:clubCanonico(r.club),cat:r.cat,
-        precio:r.precio,emp:emp,editor:editor,edi:r.edi,todo:!!r.todo,pagado:r.pagado});
+        precio:r.precio,emp:emp,editor:editor,edi:r.edi,todo:!!r.todo,pagado:r.pagado,rival:r.obs||""});
       /* ENTREGA: solo desde columnas dedicadas del Excel (entregado/editado). NUNCA desde el estado de asignación. Nunca baja lo ya entregado. */
       if(r.entregado) base.estado="entreg";
       else if(base.estado!=="entreg") base.estado=(r.fecha<hoy?"film":"prox");
@@ -438,7 +440,7 @@ function aplicarRemotos(lista){
       if(base.estadoEdit===undefined) base.estadoEdit="pend";
     }else{
       ST.partidos.push({id:r.id,fecha:r.fecha,hora:r.hora,cancha:r.cancha,club:clubCanonico(r.club),cat:r.cat,
-        precio:r.precio,emp:emp,editor:editor,edi:r.edi,todo:!!r.todo,pagado:r.pagado,
+        precio:r.precio,emp:emp,editor:editor,edi:r.edi,todo:!!r.todo,pagado:r.pagado,rival:r.obs||"",
         estado:(r.entregado?"entreg":(r.fecha<hoy?"film":"prox")),estadoEdit:(r.editado?"entreg":"pend"),club2:"",precio2:0,cerro:""});
       nuevos++;
     }
@@ -795,6 +797,7 @@ function matchCard(p){
   const est={prox:["prox","Próximo"],film:["film","Filmado"],entreg:["entreg","Entregado"]}[p.estado];
   const row=`<div class="match ${p.nuevo?'nuevo':''}"><div class="day"><div class="d">${f.d}</div><div class="m">${f.m}</div></div>
   <div class="info"><div class="club">${p.club} <span style="color:var(--muted);font-weight:500">· ${p.cat}</span></div>
+  ${p.rival?`<div style="font-size:13px;font-weight:600;margin-top:1px">🆚 vs ${p.rival}</div>`:''}
   <div class="meta">🕘 ${p.hora} · 📍 ${p.cancha}${p.club2?' · 🤝 compartido con '+p.club2:''}</div></div>
   <div class="right">${p.nuevo?'<span class="pill nuevo">🔔 NUEVO</span><br>':''}<div class="pill ${est[0]}" style="margin-top:${p.nuevo?'6px':'0'}">${est[1]}</div><br>
   <span class="pill ${p.edi?'edi':'noedi'}" style="margin-top:6px">${p.edi?'CON EDI':'SIN EDI'}</span></div></div>`;
@@ -806,6 +809,7 @@ function entregaCard(p,tipo){
   const attr=tipo==="editar"?`data-editar="${p.id}"`:`data-entregar="${p.id}"`;
   return `<div class="match"><div class="day"><div class="d">${f.d}</div><div class="m">${f.m}</div></div>
   <div class="info"><div class="club">${p.club} <span style="color:var(--muted);font-weight:500">· ${p.cat}</span></div>
+  ${p.rival?`<div style="font-size:13px;font-weight:600;margin-top:1px">🆚 vs ${p.rival}</div>`:''}
   <div class="meta">🕘 ${p.hora} · 📍 ${p.cancha}${p.club2?' · 🤝 '+p.club2:''}</div></div>
   <div class="right"><button class="btn sm" ${attr}>✅ Entregar</button></div></div>`
 }
@@ -813,16 +817,21 @@ function viewPerfil(v){
   const e=SESSION.emp,L=liquidacion(e.id);
   const mesNom=(()=>{const ym=(ST.mesLiq||"2026-08").split("-");return MESN[+ym[1]-1]})();
   const mine=ST.partidos.filter(p=>p.emp===e.id).sort((a,b)=>a.fecha<b.fecha?-1:1);
-  const prox=mine.filter(p=>p.estado==="prox"),hechos=mine.filter(p=>p.estado!=="prox").reverse();
-  const paraEntregar=mine.filter(p=>p.estado==="film");
+  const _hoy=hoyISO();
+  /* Se puede entregar cualquier partido de HOY o anterior que todavía no se entregó
+     (sin depender de que el estado haya pasado a "filmado"). */
+  const prox=mine.filter(p=>p.estado!=="entreg"&&String(p.fecha)>_hoy);
+  const hechos=mine.filter(p=>p.estado==="entreg").reverse();
+  const paraEntregar=mine.filter(p=>p.estado!=="entreg"&&String(p.fecha)<=_hoy);
   const soyEditor=!!(e.roles&&e.roles.editor);
-  const paraEditar=soyEditor?ST.partidos.filter(p=>p.editor===e.id&&p.estado!=="prox"&&p.estadoEdit!=="entreg").sort((a,b)=>a.fecha<b.fecha?-1:1):[];
+  const paraEditar=soyEditor?ST.partidos.filter(p=>p.editor===e.id&&String(p.fecha)<=_hoy&&p.estadoEdit!=="entreg").sort((a,b)=>a.fecha<b.fecha?-1:1):[];
   const nuevos=mine.filter(p=>p.nuevo).length;
   const objs=ST.objetivos.filter(o=>o.para.includes("todos")||o.para.includes(e.id));
   v.innerHTML=`<div class="phead"><div class="big" id="fotoBig">${avatarInner(e.id,e.nombre)}</div>
     <div><div class="n">${e.nombre}</div>
     <button class="btn sm ghost" id="cambiarFoto" style="margin-top:6px">📷 Cambiar foto</button></div></div>
     <input type="file" id="fotoInput" accept="image/*" style="display:none">
+    ${(typeof Notification!=="undefined"&&Notification.permission!=="granted")?`<div class="notifbanner"><div style="flex:1">🔔 <b>Activá las notificaciones</b><div style="font-size:12.5px;opacity:.85;margin-top:2px">Enterate al toque de tus partidos nuevos y los cambios.</div></div><button class="btn" id="actNotifTop" style="background:#111;color:#FFD000;flex-shrink:0">Activar</button></div>`:''}
     ${nuevos?`<div class="alertbanner">🔔 Tenés <b style="color:var(--yellow)">&nbsp;${nuevos} novedad(es)&nbsp;</b> en tus partidos <button class="btn sm x" id="verVisto">Visto</button></div>`:''}
     <div class="grid kpis" style="margin-top:14px">
       <div class="kpi"><div class="lbl">A cobrar (${mesNom})</div><div class="val gold">${money(L.total)}</div><div class="sub">solo lo entregado</div></div>
@@ -854,6 +863,7 @@ function viewPerfil(v){
     <div style="text-align:center;margin-top:18px"><button class="btn sm" id="actNotif">🔔 Activar notificaciones</button> <button class="btn ghost sm" id="chgPin">Cambiar mi PIN</button></div>`;
   const vv=$("#verVisto");if(vv)vv.onclick=()=>{ST.partidos.forEach(p=>{if(p.emp===e.id)p.nuevo=false});saveState();viewPerfil(v)};
   $("#actNotif").onclick=pedirPermisoPush;
+  var _ant=$("#actNotifTop");if(_ant)_ant.onclick=pedirPermisoPush;
   $("#chgPin").onclick=()=>changePinModal(e.id);
   v.querySelectorAll("[data-entregar]").forEach(b=>b.onclick=()=>{
     const p=ST.partidos.find(x=>x.id===b.dataset.entregar); if(!p)return;
