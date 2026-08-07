@@ -96,6 +96,7 @@
   .pill.entreg{background:var(--yellowd);color:var(--yellow2)}
   .pill.edi{background:#241330;color:var(--purple)}.pill.noedi{background:#22262e;color:var(--muted)}
   .pill.nuevo{background:var(--yellow);color:#111}
+  .cambiotag{display:inline-block;background:var(--yellow);color:#111;font-size:11px;font-weight:800;letter-spacing:.3px;padding:2px 9px;border-radius:20px;margin-top:4px;line-height:1.3}
   .pill.comp{background:#0e2a24;color:var(--green)}
   table{width:100%;border-collapse:collapse;font-size:13.5px}
   th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line)}
@@ -403,6 +404,9 @@ let SYNC_MSG="", SYNC_OK=null, TAB_ACTUAL="resumen";
 const _sa=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
 function clubCanonico(nombre){if(!nombre)return nombre;var m=ST.clubes.find(c=>_sa(c.club)===_sa(nombre));return m?m.club:nombre;}
 function hoyISO(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+/* día de semana de una fecha ISO — para distinguir CAMBIO DE DÍA de CAMBIO DE FECHA */
+function _wd(iso){try{return new Date(iso+"T00:00:00").getDay()}catch(e){return -1}}
+function _mismoDia(a,b){return _wd(a)===_wd(b)}
 
 /* "ENZO NUÑEZ" -> "enzo"  ·  "GASTON CHECHI" -> "jefe" */
 function empIdPorNombre(txt){
@@ -430,7 +434,12 @@ function aplicarRemotos(lista){
     const base=porId[r.id];
     const editor=empIdPorNombre(r.editor)||editorDe(emp);
     if(base){
-      if(base.fecha!==r.fecha||base.hora!==r.hora||base.cancha!==r.cancha||base.emp!==emp){ cambios++; base.nuevo=true; }
+      const _difs=[];
+      if(base.fecha!==r.fecha){ _difs.push(_mismoDia(base.fecha,r.fecha)?"CAMBIO DE FECHA":"CAMBIO DE DÍA"); }
+      if(base.hora!==r.hora) _difs.push("CAMBIO DE HORARIO");
+      if(_sa(base.cancha)!==_sa(r.cancha)) _difs.push("CAMBIO DE CANCHA");
+      if(base.emp!==emp && emp) _difs.push("NUEVA ASIGNACIÓN");
+      if(_difs.length){ cambios++; base.nuevo=true; base.cambio=_difs.join(" · "); }
       Object.assign(base,{fecha:r.fecha,hora:r.hora,cancha:r.cancha,club:clubCanonico(r.club),cat:r.cat,
         precio:r.precio,emp:emp,editor:editor,edi:r.edi,todo:!!r.todo,pagado:r.pagado,rival:r.obs||""});
       /* ENTREGA: solo desde columnas dedicadas del Excel (entregado/editado). NUNCA desde el estado de asignación. Nunca baja lo ya entregado. */
@@ -441,7 +450,8 @@ function aplicarRemotos(lista){
     }else{
       ST.partidos.push({id:r.id,fecha:r.fecha,hora:r.hora,cancha:r.cancha,club:clubCanonico(r.club),cat:r.cat,
         precio:r.precio,emp:emp,editor:editor,edi:r.edi,todo:!!r.todo,pagado:r.pagado,rival:r.obs||"",
-        estado:(r.entregado?"entreg":(r.fecha<hoy?"film":"prox")),estadoEdit:(r.editado?"entreg":"pend"),club2:"",precio2:0,cerro:""});
+        estado:(r.entregado?"entreg":(r.fecha<hoy?"film":"prox")),estadoEdit:(r.editado?"entreg":"pend"),club2:"",precio2:0,cerro:"",
+        nuevo:true,cambio:"PARTIDO NUEVO"});
       nuevos++;
     }
   });
@@ -797,9 +807,10 @@ function matchCard(p){
   const est={prox:["prox","Próximo"],film:["film","Filmado"],entreg:["entreg","Entregado"]}[p.estado];
   const row=`<div class="match ${p.nuevo?'nuevo':''}"><div class="day"><div class="d">${f.d}</div><div class="m">${f.m}</div></div>
   <div class="info"><div class="club">${p.club} <span style="color:var(--muted);font-weight:500">· ${p.cat}</span></div>
+  ${p.nuevo?`<div class="cambiotag">🔔 ${p.cambio||'NOVEDAD'}</div>`:''}
   ${p.rival?`<div style="font-size:13px;font-weight:600;margin-top:1px">🆚 vs ${p.rival}</div>`:''}
   <div class="meta">🕘 ${p.hora} · 📍 ${p.cancha}${p.club2?' · 🤝 compartido con '+p.club2:''}</div></div>
-  <div class="right">${p.nuevo?'<span class="pill nuevo">🔔 NUEVO</span><br>':''}<div class="pill ${est[0]}" style="margin-top:${p.nuevo?'6px':'0'}">${est[1]}</div><br>
+  <div class="right"><div class="pill ${est[0]}">${est[1]}</div><br>
   <span class="pill ${p.edi?'edi':'noedi'}" style="margin-top:6px">${p.edi?'CON EDI':'SIN EDI'}</span></div></div>`;
   return (clubComparte(p)&&!p.club2&&p.estado==="prox")?`<div class="mwrap">${row}${compartibleBanner(p)}</div>`:row;
 }
@@ -861,13 +872,13 @@ function viewPerfil(v){
     <div class="sectitle">Historial</div>
     <div>${hechos.length?hechos.slice(0,8).map(matchCard).join(""):'<div class="empty">—</div>'}</div>
     <div style="text-align:center;margin-top:18px"><button class="btn sm" id="actNotif">🔔 Activar notificaciones</button> <button class="btn ghost sm" id="chgPin">Cambiar mi PIN</button></div>`;
-  const vv=$("#verVisto");if(vv)vv.onclick=()=>{ST.partidos.forEach(p=>{if(p.emp===e.id)p.nuevo=false});saveState();viewPerfil(v)};
+  const vv=$("#verVisto");if(vv)vv.onclick=()=>{ST.partidos.forEach(p=>{if(p.emp===e.id){p.nuevo=false;p.cambio="";}});saveState();viewPerfil(v)};
   $("#actNotif").onclick=pedirPermisoPush;
   var _ant=$("#actNotifTop");if(_ant)_ant.onclick=pedirPermisoPush;
   $("#chgPin").onclick=()=>changePinModal(e.id);
   v.querySelectorAll("[data-entregar]").forEach(b=>b.onclick=()=>{
     const p=ST.partidos.find(x=>x.id===b.dataset.entregar); if(!p)return;
-    p.estado="entreg"; p.nuevo=false; saveState(); guardarEnExcel(p); viewPerfil(v);
+    p.estado="entreg"; p.nuevo=false; p.cambio=""; saveState(); guardarEnExcel(p); viewPerfil(v);
   });
   v.querySelectorAll("[data-editar]").forEach(b=>b.onclick=()=>{
     const p=ST.partidos.find(x=>x.id===b.dataset.editar); if(!p)return;
