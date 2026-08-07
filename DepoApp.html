@@ -97,6 +97,7 @@
   .pill.edi{background:#241330;color:var(--purple)}.pill.noedi{background:#22262e;color:var(--muted)}
   .pill.nuevo{background:var(--yellow);color:#111}
   .cambiotag{display:inline-block;background:var(--yellow);color:#111;font-size:11px;font-weight:800;letter-spacing:.3px;padding:2px 9px;border-radius:20px;margin-top:4px;line-height:1.3}
+  .navbadge{display:inline-block;min-width:16px;height:16px;line-height:16px;padding:0 4px;margin-left:4px;background:var(--red);color:#fff;font-size:10px;font-weight:800;border-radius:20px;vertical-align:top}
   .pill.comp{background:#0e2a24;color:var(--green)}
   table{width:100%;border-collapse:collapse;font-size:13.5px}
   th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line)}
@@ -501,7 +502,11 @@ async function traerPins(){
     const r=await fetch(BACKEND_URL+"?action=pins&token="+encodeURIComponent(BACKEND_TOKEN));
     const d=await r.json();
     if(!d.ok||!d.pins) return;
-    ST.pins=Object.assign({}, d.pins, ST.pins); /* el backend rellena lo borrado; lo local (recién creado) manda */
+    const backend=d.pins||{};
+    ST.pins=Object.assign({}, backend, ST.pins); /* el backend rellena lo borrado; lo local (recién creado) manda */
+    /* Reconciliar: si este celu tiene un PIN que el Excel todavía no tiene, subirlo
+       (así el PIN creado en un celular queda disponible para todos, incluido el jefe). */
+    Object.keys(ST.pins).forEach(id=>{ if(ST.pins[id] && !backend[id]) guardarPinBackend(id, ST.pins[id]); });
     saveState();
     if(!SESSION) renderWho();
   }catch(e){}
@@ -744,14 +749,20 @@ function renderWho(){
     b.onclick=()=>startPin(e, e.id==="jefe"?"jefe":"empleado");list.appendChild(b);
   });
 }
-function startPin(emp,role){
+async function startPin(emp,role){
   pinTarget={emp,role};pinBuf="";pinFirst="";
-  pinMode=(role==="jefe"||ST.pins[emp.id])?"enter":"create";
   $("#whoStep").classList.add("hidden");$("#pinPad").classList.remove("hidden");
   $("#pinAvatar").innerHTML=avatarInner(emp.id,emp.nombre);
   $("#pinName").textContent=emp.nombre;
-  $("#pinRole").textContent=pinMode==="create"?"Creá tu PIN de 4 dígitos":(role==="jefe"?"PIN de jefe":"Ingresá tu PIN");
   $("#pinErr").textContent="";updateDots();
+  /* Si en este celu no figura el PIN, primero preguntamos al Excel: puede que
+     ya lo haya creado en otro celular. Así no dejamos "crear" uno nuevo por error. */
+  if(role!=="jefe" && !ST.pins[emp.id]){
+    $("#pinRole").textContent="Verificando…";
+    await traerPins();
+  }
+  pinMode=(role==="jefe"||ST.pins[emp.id])?"enter":"create";
+  $("#pinRole").textContent=pinMode==="create"?"Creá tu PIN de 4 dígitos":(role==="jefe"?"PIN de jefe":"Ingresá tu PIN");
 }
 function updateDots(){document.querySelectorAll(".pindot").forEach((d,i)=>d.classList.toggle("on",i<pinBuf.length))}
 function renderKeys(){
@@ -768,14 +779,16 @@ function submitPin(){
     if(pinBuf===pinFirst){ST.pins[pinTarget.emp.id]=hashPin(pinBuf);saveState();guardarPinBackend(pinTarget.emp.id,ST.pins[pinTarget.emp.id]);SESSION={emp:pinTarget.emp,role:"empleado"};enterApp()}
     else{$("#pinErr").textContent="No coincide";pinFirst="";pinBuf="";updateDots();$("#pinRole").textContent="Creá tu PIN de 4 dígitos"}
     return}
-  const ok=pinOK(pinTarget.role==="jefe"?"jefe":pinTarget.emp.id, pinBuf);
+  const targetId=pinTarget.role==="jefe"?"jefe":pinTarget.emp.id;
+  /* El PIN de jefe es maestro: abre cualquier perfil (para que Gastón siempre pueda entrar). */
+  const ok=pinOK(targetId, pinBuf) || (pinTarget.role!=="jefe" && pinOK("jefe", pinBuf));
   if(ok){SESSION={emp:pinTarget.emp,role:pinTarget.role};enterApp()}
   else{$("#pinErr").textContent="PIN incorrecto";pinBuf="";updateDots()}
 }
 $("#backWho").onclick=()=>{$("#pinPad").classList.add("hidden");$("#whoStep").classList.remove("hidden");renderWho()};
 
 /* ===================== SHELL ===================== */
-const TABS=[{id:"resumen",ic:"📊",label:"Resumen"},{id:"finanzas",ic:"💵",label:"Caja"},
+const TABS=[{id:"resumen",ic:"📊",label:"Resumen"},{id:"notificaciones",ic:"🔔",label:"Avisos"},{id:"finanzas",ic:"💵",label:"Caja"},
   {id:"clientes",ic:"🏆",label:"Clientes"},{id:"asignaciones",ic:"🎥",label:"Partidos"},
   {id:"equipo",ic:"👥",label:"Equipo"},{id:"objetivos",ic:"🎯",label:"Objetivos"}];
 function enterApp(){
@@ -795,11 +808,51 @@ function go(tab){
   TAB_ACTUAL=tab;
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
   const v=$("#view");v.innerHTML="";window.scrollTo(0,0);
-  ({resumen:viewResumen,finanzas:viewFinanzas,clientes:viewClientes,asignaciones:viewAsignaciones,equipo:viewEquipo,objetivos:viewObjetivos})[tab](v)
+  ({resumen:viewResumen,notificaciones:viewNotificaciones,finanzas:viewFinanzas,clientes:viewClientes,asignaciones:viewAsignaciones,equipo:viewEquipo,objetivos:viewObjetivos})[tab](v);
+  refrescarNavNotif();
 }
 $("#logoutBtn").onclick=()=>{pushLogout();SESSION=null;$("#app").classList.add("hidden");$("#login").classList.remove("hidden");$("#pinPad").classList.add("hidden");$("#whoStep").classList.remove("hidden");renderWho()};
 $("#gearBtn").onclick=ajustesModal;
 $("#syncBtn").onclick=()=>{const b=$("#syncBtn");b.textContent="⏳";sincronizar(false).finally(()=>{b.textContent="↻"})};
+
+/* ===================== NOTIFICACIONES ===================== */
+/* Tarjeta de novedad. showEmp=true muestra a qué empleado corresponde (vista jefe). */
+function notifCard(p,showEmp){
+  const f=fdShort(p.fecha);
+  const e=showEmp?empById(p.emp):null;
+  const empN=showEmp?(e?e.nombre.split(" ")[0]:'sin asignar'):'';
+  return `<div class="match nuevo"><div class="day"><div class="d">${f.d}</div><div class="m">${f.m}</div></div>
+  <div class="info"><div class="cambiotag">🔔 ${p.cambio||'NOVEDAD'}</div>
+  <div class="club" style="margin-top:3px">${p.club} <span style="color:var(--muted);font-weight:500">· ${p.cat}</span></div>
+  <div class="meta">🕘 ${p.hora} · 📍 ${p.cancha}${showEmp?' · 👤 '+empN:''}</div></div>
+  <div class="right"><button class="btn sm" data-recibido="${p.id}">✓ Recibido</button></div></div>`;
+}
+function bindNotifs(scope){
+  scope.querySelectorAll("[data-recibido]").forEach(b=>b.onclick=()=>{
+    const p=ST.partidos.find(x=>String(x.id)===String(b.dataset.recibido));
+    if(p){p.nuevo=false;p.cambio="";saveState();}
+    if(SESSION&&SESSION.role==="jefe"){go("notificaciones")}else{viewPerfil($("#view"))}
+  });
+}
+/* Vista del jefe: todas las novedades de todos los partidos */
+function viewNotificaciones(v){
+  const novs=ST.partidos.filter(p=>p.nuevo).sort((a,b)=>a.fecha<b.fecha?-1:1);
+  v.innerHTML=`<div class="pagetitle">Notificaciones <small>${novs.length} sin leer</small></div>
+    <div class="note">Cada cambio en el Excel (horario, cancha, fecha, partido nuevo) aparece acá. Tocá <b>Recibido</b> para sacarlo.</div>
+    ${novs.length?`<div class="flexbtns" style="margin:12px 0"><button class="btn sm ghost" id="marcarTodas">✓ Marcar todas como recibidas</button></div>`:''}
+    <div id="notifZone">${novs.length?novs.map(p=>notifCard(p,true)).join(""):'<div class="empty">No hay novedades pendientes.</div>'}</div>`;
+  bindNotifs(v);
+  const mt=$("#marcarTodas");if(mt)mt.onclick=()=>{if(confirm("¿Marcar todas como recibidas?")){ST.partidos.forEach(p=>{p.nuevo=false;p.cambio="";});saveState();go("notificaciones")}};
+}
+/* Badge con el número de novedades en la pestaña Avisos del jefe */
+function refrescarNavNotif(){
+  const n=ST.partidos.filter(p=>p.nuevo).length;
+  const btn=document.querySelector('#nav button[data-tab="notificaciones"]');
+  if(!btn)return;
+  let b=btn.querySelector('.navbadge');
+  if(n>0){ if(!b){b=document.createElement('span');b.className='navbadge';btn.appendChild(b);} b.textContent=n>9?'9+':n; }
+  else if(b){ b.remove(); }
+}
 
 /* ===================== EMPLEADO ===================== */
 function matchCard(p){
@@ -843,11 +896,14 @@ function viewPerfil(v){
     <button class="btn sm ghost" id="cambiarFoto" style="margin-top:6px">📷 Cambiar foto</button></div></div>
     <input type="file" id="fotoInput" accept="image/*" style="display:none">
     ${(typeof Notification!=="undefined"&&Notification.permission!=="granted")?`<div class="notifbanner"><div style="flex:1">🔔 <b>Activá las notificaciones</b><div style="font-size:12.5px;opacity:.85;margin-top:2px">Enterate al toque de tus partidos nuevos y los cambios.</div></div><button class="btn" id="actNotifTop" style="background:#111;color:#FFD000;flex-shrink:0">Activar</button></div>`:''}
-    ${nuevos?`<div class="alertbanner">🔔 Tenés <b style="color:var(--yellow)">&nbsp;${nuevos} novedad(es)&nbsp;</b> en tus partidos <button class="btn sm x" id="verVisto">Visto</button></div>`:''}
+    ${nuevos?`<div class="alertbanner">🔔 Tenés <b style="color:var(--yellow)">&nbsp;${nuevos} novedad(es)&nbsp;</b> en tus partidos <button class="btn sm x" id="verVisto">Marcar todo</button></div>
+    <div class="sectitle" style="margin-top:12px">🔔 Notificaciones (${nuevos})</div>
+    <div id="notifZoneEmp">${mine.filter(p=>p.nuevo).map(p=>notifCard(p,false)).join("")}</div>`:''}
     <div class="grid kpis" style="margin-top:14px">
       <div class="kpi"><div class="lbl">A cobrar (${mesNom})</div><div class="val gold">${money(L.total)}</div><div class="sub">solo lo entregado</div></div>
       <div class="kpi"><div class="lbl">Partidos del mes</div><div class="val">${L.partidos}</div>${L.pendFilm?`<div class="sub">${L.pendFilm} sin entregar</div>`:''}</div>
       <div class="kpi"><div class="lbl">Comisiones</div><div class="val">${money(L.comision)}</div><div class="sub">2º equipo</div></div>
+      ${(soyEditor||L.nEdit)?`<div class="kpi"><div class="lbl">Partidos editados</div><div class="val">${L.nEdit}</div><div class="sub">${money(L.edicion)}${L.pendEdit?` · ${L.pendEdit} sin entregar`:''}</div></div>`:''}
       <div class="kpi"><div class="lbl">Próximos</div><div class="val">${prox.length}</div></div></div>
     <div class="card" style="margin-top:14px"><div class="sectitle" style="margin-top:0">Cómo se compone</div>
       <table><tbody>
@@ -873,6 +929,7 @@ function viewPerfil(v){
     <div>${hechos.length?hechos.slice(0,8).map(matchCard).join(""):'<div class="empty">—</div>'}</div>
     <div style="text-align:center;margin-top:18px"><button class="btn sm" id="actNotif">🔔 Activar notificaciones</button> <button class="btn ghost sm" id="chgPin">Cambiar mi PIN</button></div>`;
   const vv=$("#verVisto");if(vv)vv.onclick=()=>{ST.partidos.forEach(p=>{if(p.emp===e.id){p.nuevo=false;p.cambio="";}});saveState();viewPerfil(v)};
+  bindNotifs(v);
   $("#actNotif").onclick=pedirPermisoPush;
   var _ant=$("#actNotifTop");if(_ant)_ant.onclick=pedirPermisoPush;
   $("#chgPin").onclick=()=>changePinModal(e.id);
