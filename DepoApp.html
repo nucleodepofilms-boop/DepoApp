@@ -775,7 +775,7 @@ function enterApp(){
   $("#uName").textContent=SESSION.emp.nombre.split(" ")[0];
   const rt=$("#uRole");rt.textContent="";rt.className="roletag hidden";
   $("#gearBtn").classList.toggle("hidden",SESSION.role!=="jefe");
-  if(SESSION.role==="jefe"){buildNav();$("#nav").classList.remove("hidden");go("resumen");sincronizarCaja()}
+  if(SESSION.role==="jefe"){pushLoginEmpleado("jefe");buildNav();$("#nav").classList.remove("hidden");go("resumen");sincronizarCaja()}
   else{pushLoginEmpleado(SESSION.emp.id);$("#nav").classList.add("hidden");viewPerfil($("#view"))}
 }
 function buildNav(){const nav=$("#nav");nav.innerHTML="";
@@ -948,6 +948,7 @@ function viewResumen(v){
   const compartidos=mes.filter(p=>p.club2).length;
   const costoEmp=ST.empleados.filter(e=>e.activo!==false).reduce((a,e)=>a+liquidacion(e.id,ym).total,0);
   v.innerHTML=`<div class="pagetitle">Resumen <small>DepoFilms · julio 2026</small></div>
+    ${(typeof Notification!=="undefined"&&Notification.permission!=="granted")?`<div class="notifbanner"><div style="flex:1">🔔 <b>Activá tus notificaciones</b><div style="font-size:12.5px;opacity:.85;margin-top:2px">Para que te avise cuando cambien partidos en el Excel.</div></div><button class="btn" id="actNotifJefe" style="background:#111;color:#FFD000;flex-shrink:0">Activar</button></div>`:''}
     <div class="grid kpis">
       <div class="kpi"><div class="lbl">Facturado (mes)</div><div class="val">${money(fact)}</div><div class="sub">${mes.length} partidos</div></div>
       <div class="kpi"><div class="lbl">Cobrado</div><div class="val green">${money(cobrado)}</div><div class="sub">${fact?Math.round(cobrado/fact*100):0}%</div></div>
@@ -960,6 +961,7 @@ function viewResumen(v){
       <div class="kpi"><div class="lbl">Margen estimado</div><div class="val gold">${money(cobrado-costoEmp)}</div></div></div>
     <div class="card" style="margin-top:16px"><div class="sectitle" style="margin-top:0">Ingresos vs egresos</div><div class="chartbox"><canvas id="cMes"></canvas></div></div>`;
   drawMes("cMes",F);
+  var _anj=$("#actNotifJefe");if(_anj)_anj.onclick=pedirPermisoPush;
 }
 
 /* ===================== FINANZAS ===================== */
