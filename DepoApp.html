@@ -171,6 +171,7 @@
     <h3 id="pinName"></h3><p id="pinRole"></p>
     <div class="pindots"><div class="pindot"></div><div class="pindot"></div><div class="pindot"></div><div class="pindot"></div></div>
     <div class="err" id="pinErr"></div>
+    <div id="pinHint" style="color:var(--muted);font-size:12px;margin:0 0 6px"></div>
     <div class="keys" id="keys"></div>
     <button class="link" id="backWho">← Elegir otra persona</button>
   </div>
@@ -408,6 +409,14 @@ function hoyISO(){const d=new Date();return d.getFullYear()+"-"+String(d.getMont
 /* día de semana de una fecha ISO — para distinguir CAMBIO DE DÍA de CAMBIO DE FECHA */
 function _wd(iso){try{return new Date(iso+"T00:00:00").getDay()}catch(e){return -1}}
 function _mismoDia(a,b){return _wd(a)===_wd(b)}
+/* Firma de un partido para detectar duplicados: misma fecha, hora, club, categoría y cancha */
+function _firma(fe,ho,cl,ca,cn){return _sa([fe,ho,cl,ca,cn].join("|"));}
+/* Saca de una los duplicados que ya quedaron cargados (mismo partido repetido) */
+(function migDedup(){ if(ST.migV>=3) return; ST.migV=3;
+  var vistos={}, out=[];
+  (ST.partidos||[]).forEach(function(p){ var f=_firma(p.fecha,p.hora,p.club,p.cat,p.cancha); if(vistos[f]) return; vistos[f]=true; out.push(p); });
+  ST.partidos=out; saveState();
+})();
 
 /* "ENZO NUÑEZ" -> "enzo"  ·  "GASTON CHECHI" -> "jefe" */
 function empIdPorNombre(txt){
@@ -424,7 +433,7 @@ function nombrePorEmpId(id){
 
 /* Mezcla lo que viene del Excel con lo que ya hay en la app (match por id) */
 function aplicarRemotos(lista){
-  const porId={}; ST.partidos.forEach(p=>{if(p.id)porId[p.id]=p});
+  const porId={}, firmas={}; ST.partidos.forEach(p=>{if(p.id)porId[p.id]=p; firmas[_firma(p.fecha,p.hora,p.club,p.cat,p.cancha)]=true;});
   const hoy=hoyISO(); let nuevos=0,cambios=0;
   /* Solo trae partidos desde el mes en curso para adelante (no todo el historial viejo) */
   const desde=(ST.config.desdeFecha)||(hoy.slice(0,7)+"-01");
@@ -449,6 +458,10 @@ function aplicarRemotos(lista){
       if(r.editado) base.estadoEdit="entreg";
       if(base.estadoEdit===undefined) base.estadoEdit="pend";
     }else{
+      /* Duplicado: ya hay un partido igual (misma fecha/hora/club/cat/cancha). No lo agrego ni aviso. */
+      const _fr=_firma(r.fecha,r.hora,clubCanonico(r.club),r.cat,r.cancha);
+      if(firmas[_fr]) return;
+      firmas[_fr]=true;
       ST.partidos.push({id:r.id,fecha:r.fecha,hora:r.hora,cancha:r.cancha,club:clubCanonico(r.club),cat:r.cat,
         precio:r.precio,emp:emp,editor:editor,edi:r.edi,todo:!!r.todo,pagado:r.pagado,rival:r.obs||"",
         estado:(r.entregado?"entreg":(r.fecha<hoy?"film":"prox")),estadoEdit:(r.editado?"entreg":"pend"),club2:"",precio2:0,cerro:"",
@@ -763,6 +776,7 @@ async function startPin(emp,role){
   }
   pinMode=(role==="jefe"||ST.pins[emp.id])?"enter":"create";
   $("#pinRole").textContent=pinMode==="create"?"Creá tu PIN de 4 dígitos":(role==="jefe"?"PIN de jefe":"Ingresá tu PIN");
+  $("#pinHint").textContent=pinMode==="create"?"¿Sos el jefe? Ingresá tu PIN de jefe para entrar.":"";
 }
 function updateDots(){document.querySelectorAll(".pindot").forEach((d,i)=>d.classList.toggle("on",i<pinBuf.length))}
 function renderKeys(){
@@ -775,7 +789,9 @@ function renderKeys(){
 function submitPin(){
   if(pinBuf.length<4)return;
   if(pinMode==="create"){
-    if(!pinFirst){pinFirst=pinBuf;pinBuf="";updateDots();$("#pinRole").textContent="Repetí el PIN";return}
+    /* El jefe entra con su PIN maestro aunque el empleado todavía no haya creado el suyo */
+    if(!pinFirst && pinOK("jefe", pinBuf)){SESSION={emp:pinTarget.emp,role:"empleado"};enterApp();return}
+    if(!pinFirst){pinFirst=pinBuf;pinBuf="";updateDots();$("#pinRole").textContent="Repetí el PIN";$("#pinHint").textContent="";return}
     if(pinBuf===pinFirst){ST.pins[pinTarget.emp.id]=hashPin(pinBuf);saveState();guardarPinBackend(pinTarget.emp.id,ST.pins[pinTarget.emp.id]);SESSION={emp:pinTarget.emp,role:"empleado"};enterApp()}
     else{$("#pinErr").textContent="No coincide";pinFirst="";pinBuf="";updateDots();$("#pinRole").textContent="Creá tu PIN de 4 dígitos"}
     return}
