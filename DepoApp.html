@@ -284,46 +284,57 @@ const ROLES_FIX={
 
 const CLUBES_DEF=[
   {club:"COP",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Marcelo",comparte:true,cats:[
-    {cat:"Primera A / Premium",precio:45000,edi:true,local:"Local",cancha:"COP"},
-    {cat:"Primera B / Serie B",precio:40000,edi:true,local:"Local",cancha:"COP"},
-    {cat:"Seniors / Plata",precio:40000,edi:false,local:"Local",cancha:"COP"},
-    {cat:"Veteranos / Plata",precio:40000,edi:false,local:"Local",cancha:"COP"}]},
-  {club:"Alianza G.",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Jugadores",comparte:true,cats:[
-    {cat:"Primera A / Serie A",precio:38000,edi:false,local:"Local y visitante",cancha:"POLIGUAY"},
-    {cat:"Primera B / Serie A",precio:38000,edi:false,local:"Local y visitante",cancha:"POLIGUAY"},
-    {cat:"C20A / Oro",precio:40000,edi:false,local:"Local y visitante",cancha:"POLIGUAY"},
-    {cat:"C20B / Bronce",precio:40000,edi:false,local:"Local y visitante",cancha:"POLIGUAY"}]},
-  {club:"Murialdo",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Jugadores",comparte:true,cats:[
-    {cat:"Femenino / Serie A",precio:38000,edi:false,local:"Local",cancha:"Murialdo"},
-    {cat:"Primera / Serie B",precio:38000,edi:true,local:"Local",cancha:"Murialdo"}]},
+    {cat:"Primera B / Serie B",precio:44000,edi:false,local:"Local",cancha:"COP",comp:true},
+    {cat:"Seniors/Oro",precio:54000,edi:true,local:"Local",cancha:"COP",comp:true},
+    {cat:"Veteranos/Oro",precio:54000,edi:true,local:"Local",cancha:"COP",comp:false}]},
+  {club:"Banco Mendoza",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Juanjo",comparte:true,cats:[
+    {cat:"Primera B / Serie B",precio:44000,edi:false,local:"Local",cancha:"BANCO MENDOZA",comp:true},
+    {cat:"C17/Plata",precio:44000,edi:false,local:"Local",cancha:"BANCO MENDOZA",comp:true},
+    {cat:"C20/Plata",precio:44000,edi:false,local:"Local",cancha:"BANCO MENDOZA",comp:true}]},
+  {club:"Alianza G.",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Jugadores",comparte:false,cats:[
+    {cat:"Primera A / Serie A",precio:44000,edi:false,local:"Local",cancha:"POLIGUAY",comp:true},
+    {cat:"C20/Oro",precio:44000,edi:false,local:"Local",cancha:"POLIGUAY",comp:false},
+    {cat:"C20/Bronce",precio:44000,edi:false,local:"Local",cancha:"POLIGUAY",comp:false}]},
   {club:"San Luis Gonzaga",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Nico Persico",comparte:false,cats:[
-    {cat:"Primera A / Serie B",precio:45000,edi:true,local:"Local y visitante",cancha:"—"}]},
-  {club:"Banco Mendoza",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Juanjo",comparte:false,cats:[
-    {cat:"Primera A / Serie B",precio:48000,edi:true,local:"Local",cancha:"Banco Mendoza"},
-    {cat:"C20 / Bronce",precio:48000,edi:false,local:"Local",cancha:"Banco Mendoza"}]},
+    {cat:"Primera B / Serie B",precio:62000,edi:true,local:"Local y visitante",cancha:"Sagrado Corazon",comp:true}]},
+  {club:"Murialdo",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Jugadores",comparte:false,cats:[
+    {cat:"Primera Fem / Serie A",precio:45000,edi:false,local:"Local y visitante",cancha:"Murialdo",comp:false}]},
   {club:"Cerede",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Nicolás",comparte:false,cats:[
-    {cat:"Primera A / Serie A",precio:48000,edi:true,local:"Local",cancha:"Cerede"}]},
-  {club:"Pacífico",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Bruno",comparte:false,cats:[
-    {cat:"Primera B / Serie B",precio:48000,edi:false,local:"Local",cancha:"Pacífico"}]},
-  {club:"U. Champagnat",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Matías",comparte:false,cats:[
-    {cat:"Primera A / Serie B",precio:43000,edi:false,local:"Local",cancha:"U. Champagnat"}]},
+    {cat:"Primera A / Serie A",precio:68000,edi:true,local:"Local",cancha:"CEREDE",comp:true}]},
   {club:"UNC",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Lucas Bazán",comparte:false,cats:[
-    {cat:"Primera A / Serie A",precio:43000,edi:false,local:"Local",cancha:"UNC"}]},
+    {cat:"Primera A / Serie A",precio:58000,edi:false,local:"Local",cancha:"UNCUYO",comp:false}]},
+  {club:"Jockey Club",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"—",comparte:false,cats:[
+    {cat:"Primera A / Serie A",precio:40000,edi:false,local:"Local y visitante",cancha:"JOCKEY",comp:true},
+    {cat:"C20/Oro",precio:40000,edi:false,local:"Local y visitante",cancha:"JOCKEY",comp:true},
+    {cat:"C17/Oro",precio:40000,edi:false,local:"Local y visitante",cancha:"JOCKEY",comp:true},
+    {cat:"C15/Oro",precio:40000,edi:false,local:"Local y visitante",cancha:"JOCKEY",comp:true}]},
   {club:"IMPSA",deporte:"Futsal",estado:"ACTIVO",pago:"Partido a partido",contacto:"—",comparte:false,cats:[
-    {cat:"Primera A / Serie B",precio:38000,edi:false,local:"Local",cancha:"—"},
-    {cat:"C20 / Bronce",precio:38000,edi:false,local:"Local",cancha:"—"}]},
+    {cat:"Primera B / Serie B",precio:52000,edi:false,local:"Local y visitante",cancha:"IMPSA",comp:true}]},
+  {club:"Los Teros",deporte:"Futsal",estado:"ACTIVO",pago:"Partido a partido",contacto:"—",comparte:false,cats:[
+    {cat:"Primera B / Serie B",precio:40000,edi:false,local:"Local y visitante",cancha:"GIMNASIO N7",comp:false},
+    {cat:"C20/Bronce",precio:40000,edi:false,local:"Local y visitante",cancha:"GIMNASIO N7",comp:false},
+    {cat:"Primera Fem / Serie B",precio:40000,edi:false,local:"Local y visitante",cancha:"GIMNASIO N7",comp:false}]},
   {club:"Banco Nación",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"—",comparte:false,cats:[
-    {cat:"Primera A / Premium",precio:45000,edi:false,local:"Local",cancha:"Banco Nación"}]},
+    {cat:"Primera A / Premium",precio:44000,edi:false,local:"Local",cancha:"Banco Nacion",comp:true},
+    {cat:"Primera A / Serie A",precio:44000,edi:false,local:"Local",cancha:"Banco Nacion",comp:true},
+    {cat:"Seniors/Oro",precio:44000,edi:false,local:"Local",cancha:"Banco Nacion",comp:true},
+    {cat:"C20/Plata",precio:44000,edi:false,local:"Local",cancha:"Banco Nacion",comp:true}]},
+  {club:"Coquimbito",deporte:"Futsal",estado:"ACTIVO",pago:"Partido a partido",contacto:"—",comparte:true,cats:[
+    {cat:"Primera A / Serie A",precio:52000,edi:false,local:"Local y visitante",cancha:"COQUIMBITO",comp:true}]},
+  {club:"Municipal Mza.",deporte:"Futsal",estado:"ACTIVO",pago:"Partido a partido",contacto:"—",comparte:false,cats:[
+    {cat:"Primera B / Serie B",precio:62000,edi:true,local:"Local y visitante",cancha:"Municipal Mza.",comp:false}]},
   {club:"Alemán",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Nahuel Parada",comparte:false,cats:[
-    {cat:"FSP Masculino",precio:43000,edi:true,local:"Local",cancha:"Alemán"},
-    {cat:"Primera Fem",precio:43000,edi:true,local:"Local",cancha:"Alemán"}]},
+    {cat:"Primera A / Premium",precio:43000,edi:true,local:"Local",cancha:"ALEMAN",comp:false},
+    {cat:"Primera Fem / Serie A",precio:43000,edi:true,local:"Local",cancha:"ALEMAN",comp:false}]},
   {club:"San José",deporte:"Futsal",estado:"ACTIVO",pago:"Partido a partido",contacto:"Cande",comparte:false,cats:[
-    {cat:"Primera Fem / Premium",precio:48000,edi:false,local:"Local",cancha:"Ceferino Namuncura"}]},
-  {club:"Coquimbito",deporte:"Futsal",estado:"ACTIVO",pago:"Partido a partido",contacto:"—",comparte:false,cats:[
-    {cat:"Serie A",precio:38000,edi:false,local:"Local y visitante",cancha:"—"}]},
+    {cat:"Primera Fem / Premium",precio:48000,edi:false,local:"Local",cancha:"Ceferino Namuncura",comp:false}]},
+  {club:"Pacífico",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Bruno",comparte:false,cats:[
+    {cat:"Primera B / Serie B",precio:48000,edi:false,local:"Local",cancha:"PACIFICO",comp:false}]},
+  {club:"U. Champagnat",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"Matías",comparte:false,cats:[
+    {cat:"Primera B / Serie B",precio:43000,edi:false,local:"Local",cancha:"CHAMPAGNAT",comp:false}]},
   {club:"GYE",deporte:"Futsal",estado:"RIESGO",pago:"Partido a partido",contacto:"Ariel",comparte:false,cats:[
-    {cat:"Primera B / Serie B",precio:48000,edi:true,local:"Local",cancha:"GYE"},
-    {cat:"Veteranos / Plata",precio:48000,edi:true,local:"Local",cancha:"GYE"}]},
+    {cat:"Primera B / Serie B",precio:48000,edi:true,local:"Local",cancha:"GYE",comp:false},
+    {cat:"Veteranos/Plata",precio:48000,edi:true,local:"Local",cancha:"GYE",comp:false}]},
   {club:"Mendoza Rugby",deporte:"Rugby",estado:"ACTIVO",pago:"Partido a partido",contacto:"—",comparte:false,cats:[
     {cat:"Primera",precio:50000,edi:false,local:"Local",cancha:"Mendoza Rugby"},
     {cat:"Intermedia",precio:50000,edi:false,local:"Local",cancha:"Mendoza Rugby"}]},
@@ -417,6 +428,31 @@ function _firma(fe,ho,cl,ca,cn){return _sa([fe,ho,cl,ca,cn].join("|"));}
   (ST.partidos||[]).forEach(function(p){ var f=_firma(p.fecha,p.hora,p.club,p.cat,p.cancha); if(vistos[f]) return; vistos[f]=true; out.push(p); });
   ST.partidos=out; saveState();
 })();
+/* Corrige quién comparte: COP indeciso (no), Banco Nación sí. Se puede cambiar a mano en Clientes. */
+(function migComparte(){ if(ST.migV>=4) return; ST.migV=4;
+  (ST.clubes||[]).forEach(function(c){ var n=String(c.club||"").toUpperCase().trim();
+    if(n==="COP") c.comparte=false;
+    if(n.indexOf("BANCO NACION")>-1||n.indexOf("BANCO NACIÓN")>-1) c.comparte=true;
+  });
+  saveState();
+})();
+/* Roster corregido: precios y "comparte" por categoría según la lista del jefe */
+(function migClubes(){ if(ST.migV>=5) return; ST.migV=5;
+  ST.clubes=structuredClone(CLUBES_DEF); saveState();
+})();
+/* Roster v2: corrige "comparte" y precios por categoría (lista del jefe, ago 2026).
+   El "comparte" del club se deriva de sus categorías: comparte si al menos una comparte. */
+(function migClubes2(){ if(ST.migV>=6) return; ST.migV=6;
+  ST.clubes=structuredClone(CLUBES_DEF);
+  ST.clubes.forEach(function(c){ c.comparte=(c.cats||[]).some(function(k){return !!k.comp}); });
+  saveState();
+})();
+/* Compartidos 100% manual: se borra todo lo que venía marcado como "comparte".
+   El jefe los marca a mano con el botón "🤝 Compartidos" en Clientes y pone el precio. */
+(function migClubes3(){ if(ST.migV>=7) return; ST.migV=7;
+  (ST.clubes||[]).forEach(function(c){ c.comparte=false; (c.cats||[]).forEach(function(k){ k.comp=false; }); });
+  saveState();
+})();
 
 /* "ENZO NUÑEZ" -> "enzo"  ·  "GASTON CHECHI" -> "jefe" */
 function empIdPorNombre(txt){
@@ -433,11 +469,12 @@ function nombrePorEmpId(id){
 
 /* Mezcla lo que viene del Excel con lo que ya hay en la app (match por id) */
 function aplicarRemotos(lista){
-  const porId={}, firmas={}; ST.partidos.forEach(p=>{if(p.id)porId[p.id]=p; firmas[_firma(p.fecha,p.hora,p.club,p.cat,p.cancha)]=true;});
+  const porId={}, firmas={}, respIds={}; ST.partidos.forEach(p=>{if(p.id)porId[p.id]=p; firmas[_firma(p.fecha,p.hora,p.club,p.cat,p.cancha)]=true;});
   const hoy=hoyISO(); let nuevos=0,cambios=0;
   /* Solo trae partidos desde el mes en curso para adelante (no todo el historial viejo) */
   const desde=(ST.config.desdeFecha)||(hoy.slice(0,7)+"-01");
   (lista||[]).forEach(r=>{
+    if(r&&r.id) respIds[r.id]=true;
     if(!r.id||!r.fecha) return;
     if(String(r.fecha)<desde && !porId[r.id]) return;
     const emp=empIdPorNombre(r.emp);
@@ -469,11 +506,14 @@ function aplicarRemotos(lista){
       nuevos++;
     }
   });
+  /* Saca los partidos que el jefe borró del Excel (ya no vienen en la lista), dentro del rango */
+  if(lista&&lista.length){ const antes=ST.partidos.length; ST.partidos=ST.partidos.filter(p=>!(p.id&&String(p.fecha)>=desde&&!respIds[p.id])); if(ST.partidos.length!==antes)cambios++; }
   return{nuevos,cambios};
 }
 
 async function sincronizar(silencioso){
   try{
+    await pushPendientes();
     const r=await fetch(BACKEND_URL+"?action=partidos&token="+encodeURIComponent(BACKEND_TOKEN));
     const d=await r.json();
     if(!d.ok) throw new Error(d.error||"respuesta inválida");
@@ -507,6 +547,22 @@ async function guardarEnExcel(p){
     return await r.json();
   }catch(e){ return{ok:false,error:String(e)} }
 }
+/* Empuja un partido al Excel y, si funciona, saca la marca de "pendiente".
+   Si falla (sin señal / Apps Script frío), queda pendiente y se reintenta en la
+   próxima sincronización, así el "entregado" siempre termina llegando al jefe. */
+async function confirmarPush(p){
+  try{ const r=await guardarEnExcel(p); if(r&&r.ok){ p.needsPush=false; saveState(); return true; } }catch(e){}
+  return false;
+}
+/* Reintenta todo lo que quedó pendiente de escribir en el Excel. */
+async function pushPendientes(){
+  const pend=(ST.partidos||[]).filter(p=>p.needsPush);
+  if(!pend.length) return;
+  for(const p of pend){ try{ const r=await guardarEnExcel(p); if(r&&r.ok) p.needsPush=false; }catch(e){} }
+  saveState();
+}
+/* Borra un partido del Excel (y Scorify no lo vuelve a cargar) */
+async function borrarEnExcel(id){ if(!id)return; try{ await fetch(BACKEND_URL+"?action=borrar&token="+encodeURIComponent(BACKEND_TOKEN)+"&id="+encodeURIComponent(id)); }catch(e){} }
 
 /* PIN sincronizado: el hash viaja al Excel para que no se pierda si el celu
    borra el almacenamiento o el empleado entra desde otro navegador. */
@@ -551,8 +607,12 @@ function plazoTxt(iso,done){const df=Math.round((new Date(iso+"T00:00:00")-TODAY
 let idc=1000;const uid=()=>++idc;
 const pctCompartido=p=>Math.round(p*ST.config.compartidoPct/100);
 const _clubDe=p=>ST.clubes.find(x=>_sa(x.club)===_sa(p.club));
-function clubComparte(p){var c=_clubDe(p);return !!(c&&c.comparte);}
-function precioRival(p){var c=_clubDe(p);if(c){var ct=(c.cats||[]).find(k=>_sa(k.cat)===_sa(p.cat));if(ct&&ct.precio)return pctCompartido(ct.precio);}return p.precio?pctCompartido(p.precio):0;}
+/* ¿Comparte este club? Lo decide el jefe a mano (botón 🤝 Compartidos / Editar club).
+   Ya no hay nada hardcodeado: si el jefe no lo marcó, NO comparte. */
+function clubComparte(p){var c=_clubDe(p);return c?!!c.comparte:false;}
+/* Precio compartido: primero el que cargó el jefe a mano (precioComp del club);
+   si no cargó ninguno, cae al % del individual para no mostrar $0. */
+function precioRival(p){var c=_clubDe(p);if(c&&+c.precioComp)return +c.precioComp;if(c){var ct=(c.cats||[]).find(k=>_sa(k.cat)===_sa(p.cat));if(ct&&+ct.precio)return pctCompartido(+ct.precio);var alt=(c.cats||[]).find(k=>+k.precio);if(alt)return pctCompartido(+alt.precio);}if(+p.precio)return pctCompartido(+p.precio);try{var g=precioSugerido(p);if(g&&g.total)return pctCompartido(g.total);}catch(e){}return 0;}
 function compartibleBanner(p){return `<div class="compartible"><div class="top">🤝 PARTIDO COMPARTIBLE</div>`+
   `<div>Si el rival también lo quiere, cobrale <span class="amt">${money(precioRival(p))}</span></div>`+
   `<small>📲 Pedile el contacto o que transfiera al toque · Alias: <b class="alias">depofilms</b></small></div>`;}
@@ -951,11 +1011,11 @@ function viewPerfil(v){
   $("#chgPin").onclick=()=>changePinModal(e.id);
   v.querySelectorAll("[data-entregar]").forEach(b=>b.onclick=()=>{
     const p=ST.partidos.find(x=>x.id===b.dataset.entregar); if(!p)return;
-    p.estado="entreg"; p.nuevo=false; p.cambio=""; saveState(); guardarEnExcel(p); viewPerfil(v);
+    p.estado="entreg"; p.nuevo=false; p.cambio=""; p.needsPush=true; saveState(); confirmarPush(p); viewPerfil(v);
   });
   v.querySelectorAll("[data-editar]").forEach(b=>b.onclick=()=>{
     const p=ST.partidos.find(x=>x.id===b.dataset.editar); if(!p)return;
-    p.estadoEdit="entreg"; saveState(); guardarEnExcel(p); viewPerfil(v);
+    p.estadoEdit="entreg"; p.needsPush=true; saveState(); confirmarPush(p); viewPerfil(v);
   });
   var am=$("#addMiObj");if(am)am.onclick=()=>objModal(null,e.id);
   var mo=$("#misObjs");if(mo){
@@ -1093,7 +1153,7 @@ function viewClientes(v){
   const deps=[...new Set(ST.clubes.map(c=>c.deporte))];
   v.innerHTML=`<div class="pagetitle">Clientes <small>${ST.clubes.length} clubes · precio individual y compartido por categoría</small></div>
     <div class="note">🤝 "Autoriza compartir" = te dio el OK para ofrecerle el partido al rival sin consultarle cada vez. El precio compartido se calcula al ${ST.config.compartidoPct}% del individual (lo cambiás en Ajustes).</div>
-    <div class="flexbtns" style="margin-bottom:12px"><button class="btn sm" id="addClub">+ Sumar club</button><button class="btn sm ghost" id="aplicarAum">Aplicar +${ST.config.aumentoPct}% a todos</button></div>
+    <div class="flexbtns" style="margin-bottom:12px"><button class="btn sm" id="addClub">+ Sumar club</button><button class="btn sm" id="compBtn">🤝 Compartidos</button><button class="btn sm ghost" id="aplicarAum">Aplicar +${ST.config.aumentoPct}% a todos</button></div>
     <div id="clubZone"></div>`;
   const z=$("#clubZone");
   deps.forEach(dep=>{
@@ -1101,6 +1161,7 @@ function viewClientes(v){
     const h=document.createElement("div");h.innerHTML=`<div class="sectitle">${dep} · ${cs.length}</div>`+cs.map(clubCard).join("");z.appendChild(h)});
   bindClubs(z);
   $("#addClub").onclick=()=>clubModal();
+  $("#compBtn").onclick=()=>compartidosModal();
   $("#aplicarAum").onclick=()=>{
     if(!confirm(`Esto sube TODOS los precios un ${ST.config.aumentoPct}%. ¿Seguro?`))return;
     ST.clubes.forEach(c=>c.cats.forEach(ct=>ct.precio=conAumento(ct.precio)));saveState();go("clientes")};
@@ -1112,7 +1173,7 @@ function clubCard(c){
   <span class="badge ${c.estado.toLowerCase()}">${c.estado}</span></div>
   <div class="clubbody"><div style="font-size:12px;color:var(--muted);margin:4px 0 6px">${c.pago} · Autoriza compartir: <b style="color:${c.comparte?'var(--green)':'var(--red)'}">${c.comparte?'SÍ':'NO'}</b></div>
   ${c.cats.map((ct,j)=>`<div class="catrow"><div class="cn"><b>${ct.cat}</b><small>${ct.local} · ${ct.edi?'Con edición':'Sin edición'}${ct.cancha&&ct.cancha!=='—'?' · '+ct.cancha:''}</small></div>
-  <div class="pr">${money(ct.precio)}<small>compartido ${money(pctCompartido(ct.precio))} c/u</small></div>
+  <div class="pr">${money(ct.precio)}${c.comparte?`<small>compartido ${money(c.precioComp||pctCompartido(ct.precio))} c/u</small>`:''}</div>
   <button class="btn sm ghost" data-ecat="${i}:${j}">✎</button></div>`).join("")}
   <div class="flexbtns" style="margin-top:10px"><button class="btn sm" data-acat="${i}">+ Categoría</button>
   <button class="btn sm ghost" data-eclub="${i}">Editar club</button><button class="btn sm danger" data-rclub="${i}">Borrar</button></div></div></div>`
@@ -1124,6 +1185,23 @@ function bindClubs(z){
   z.querySelectorAll("[data-eclub]").forEach(b=>b.onclick=()=>clubModal(+b.dataset.eclub));
   z.querySelectorAll("[data-rclub]").forEach(b=>b.onclick=()=>{const c=ST.clubes[+b.dataset.rclub];if(confirm("¿Borrar "+c.club+"?")){ST.clubes.splice(+b.dataset.rclub,1);saveState();go("clientes")}});
 }
+/* Panel para marcar a mano qué clubes comparten y con qué precio por equipo. */
+function compartidosModal(){
+  const orden=[...ST.clubes].map((c,i)=>({c,i})).sort((a,b)=>a.c.club.localeCompare(b.c.club));
+  const rows=orden.map(({c,i})=>`<label class="chkline ${c.comparte?'on':''}" style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+    <span><input type="checkbox" data-cc="${i}" ${c.comparte?'checked':''}> ${c.club}</span>
+    <input type="number" data-cp="${i}" value="${c.precioComp||''}" placeholder="precio c/u" style="width:130px"></label>`).join("");
+  openModal(`<h3>🤝 Equipos que comparten</h3>
+    <div class="note">Marcá los que comparten y ponéle el precio que paga cada equipo. Si dejás el precio vacío, usa el ${ST.config.compartidoPct}% del individual.</div>
+    <div style="max-height:52vh;overflow:auto;margin-top:8px">${rows}</div>
+    <div class="flexbtns" style="margin-top:12px"><button class="btn" id="ccSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`);
+  document.querySelectorAll("[data-cc]").forEach(ch=>ch.onchange=e=>e.target.closest(".chkline").classList.toggle("on",e.target.checked));
+  $("#ccSave").onclick=()=>{
+    document.querySelectorAll("[data-cc]").forEach(ch=>{ST.clubes[+ch.dataset.cc].comparte=ch.checked});
+    document.querySelectorAll("[data-cp]").forEach(ip=>{ST.clubes[+ip.dataset.cp].precioComp=+ip.value||0});
+    saveState();closeModal();go("clientes");
+  };
+}
 function clubModal(idx){
   const nuevo=idx==null,c=nuevo?{club:"",deporte:"Futsal",estado:"ACTIVO",pago:"Mensual",contacto:"",comparte:false,cats:[]}:ST.clubes[idx];
   openModal(`<h3>${nuevo?'Sumar club':'Editar '+c.club}</h3>
@@ -1132,11 +1210,12 @@ function clubModal(idx){
   <div class="field"><label>Estado</label><select id="cE">${["ACTIVO","RIESGO","INACTIVO"].map(x=>`<option ${x===c.estado?'selected':''}>${x}</option>`).join("")}</select></div></div>
   <div class="row2"><div class="field"><label>Tipo de pago</label><select id="cP">${["Mensual","Partido a partido"].map(x=>`<option ${x===c.pago?'selected':''}>${x}</option>`).join("")}</select></div>
   <div class="field"><label>Contacto</label><input id="cC" value="${c.contacto||''}"></div></div>
-  <label class="chkline ${c.comparte?'on':''}"><input type="checkbox" id="cComp" ${c.comparte?'checked':''}> 🤝 Autoriza ofrecer el partido al rival</label>
+  <label class="chkline ${c.comparte?'on':''}"><input type="checkbox" id="cComp" ${c.comparte?'checked':''}> 🤝 Este club comparte partidos</label>
+  <div class="field"><label>Precio compartido por equipo (opcional)</label><input id="cCompP" type="number" value="${c.precioComp||''}" placeholder="Vacío = ${ST.config.compartidoPct}% del individual"></div>
   <div class="flexbtns" style="margin-top:12px"><button class="btn" id="cSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`);
   $("#cComp").onchange=e=>e.target.parentElement.classList.toggle("on",e.target.checked);
   $("#cSave").onclick=()=>{const n=$("#cN").value.trim();if(!n)return;
-    const d={club:n,deporte:$("#cD").value.trim()||"Futsal",estado:$("#cE").value,pago:$("#cP").value,contacto:$("#cC").value.trim(),comparte:$("#cComp").checked};
+    const d={club:n,deporte:$("#cD").value.trim()||"Futsal",estado:$("#cE").value,pago:$("#cP").value,contacto:$("#cC").value.trim(),comparte:$("#cComp").checked,precioComp:+$("#cCompP").value||0};
     if(nuevo)ST.clubes.push({...d,cats:[]});else Object.assign(c,d);saveState();closeModal();go("clientes")};
 }
 function catModal(i,j){
@@ -1149,11 +1228,12 @@ function catModal(i,j){
   <div class="note" id="tInfo">Compartido: ${money(pctCompartido(ct.precio))} cada equipo</div>
   <div class="row2"><div class="field"><label>Filmamos</label><select id="tL">${["Local","Local y visitante"].map(x=>`<option ${x===ct.local?'selected':''}>${x}</option>`).join("")}</select></div>
   <div class="field"><label>Cancha</label><input id="tC" value="${ct.cancha||''}"></div></div>
+  <label class="chkline ${ct.comp?'on':''}" style="margin-top:8px"><input type="checkbox" id="tComp" ${ct.comp?'checked':''}> 🤝 Este cliente autoriza compartir este partido con el rival</label>
   <div class="flexbtns"><button class="btn" id="tSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button>
   ${nuevo?'':'<button class="btn danger" id="tDel">Borrar</button>'}</div>`);
   $("#tP").oninput=()=>{$("#tInfo").textContent="Compartido: "+money(pctCompartido(+$("#tP").value||0))+" cada equipo"};
   $("#tSave").onclick=()=>{const n=$("#tN").value.trim();if(!n)return;
-    const d={cat:n,precio:+$("#tP").value,edi:$("#tE").value==="si",local:$("#tL").value,cancha:$("#tC").value.trim()};
+    const d={cat:n,precio:+$("#tP").value,edi:$("#tE").value==="si",local:$("#tL").value,cancha:$("#tC").value.trim(),comp:$("#tComp").checked};
     if(nuevo)club.cats.push(d);else Object.assign(ct,d);saveState();closeModal();go("clientes")};
   if(!nuevo)$("#tDel").onclick=()=>{club.cats.splice(j,1);saveState();closeModal();go("clientes")};
 }
@@ -1272,7 +1352,7 @@ function partidoModal(idx){
       if(!r||!r.ok) alert("Guardado en la app, pero no pude escribirlo en el Excel.\nSe reintenta al sincronizar.");
       else if(dest.emp && r.push && r.push!=="enviado") console.warn("push:",r.push);
     });};
-  if(!nuevo)$("#pDel").onclick=()=>{if(confirm("¿Borrar partido?")){ST.partidos.splice(idx,1);saveState();closeModal();go("asignaciones")}};
+  if(!nuevo)$("#pDel").onclick=()=>{if(confirm("¿Borrar partido?")){var _p=ST.partidos[idx];if(_p&&_p.id)borrarEnExcel(_p.id);ST.partidos.splice(idx,1);saveState();closeModal();go("asignaciones")}};
 }
 
 /* ===================== EQUIPO ===================== */
