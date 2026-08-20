@@ -639,8 +639,10 @@ function precioRival(p){var c=_clubDe(p);var ct=_catDe(p);
   if(+p.precio)return pctCompartido(+p.precio);
   try{var g=precioSugerido(p);if(g&&g.total)return pctCompartido(g.total);}catch(e){}return 0;}
 function compartibleBanner(p){return `<div class="compartible"><div class="top">🤝 PARTIDO COMPARTIBLE</div>`+
-  `<div>Si el rival también lo quiere, cobrale <span class="amt">${money(precioRival(p))}</span></div>`+
-  `<small>📲 Pedile el contacto o que transfiera al toque · Alias: <b class="alias">depofilms</b></small></div>`;}
+  `<div>Si el rival también lo quiere, cobrale <span class="amt">${money(precioRival(p))}</span> <span style="font-weight:600;color:#ffe08a">(sin resumen)</span></div>`+
+  `<small>➕ Si quiere resumen, sumale <b class="alias">${money(10000)}</b>.</small>`+
+  `<small>📲 Pedile el contacto o que transfiera al toque.</small>`+
+  `<small>💳 Alias: <b class="alias">depofilms</b> — Banco Santander a nombre de Chechi Gastón Emanuel.</small></div>`;}
 const conAumento=p=>Math.round(p*(1+ST.config.aumentoPct/100));
 
 /* Total que entra por un partido (incluye 2º equipo si lo hay) */
@@ -978,6 +980,18 @@ function entregaCard(p,tipo){
   <div class="meta">🕘 ${p.hora} · 📍 ${p.cancha}${p.club2?' · 🤝 '+p.club2:''}</div></div>
   <div class="right"><button class="btn sm" ${attr}>✅ Entregar</button></div></div>`
 }
+/* Tarjeta de HOY: info completa (como próximos) + banner de precio compartido + botón Entregar. */
+function hoyCard(p){
+  const f=fdShort(p.fecha);
+  const row=`<div class="match ${p.nuevo?'nuevo':''}"><div class="day"><div class="d">${f.d}</div><div class="m">${f.m}</div></div>
+  <div class="info"><div class="club">${p.club} <span style="color:var(--muted);font-weight:500">· ${p.cat}</span>${compChip(p)}</div>
+  ${p.nuevo?`<div class="cambiotag">🔔 ${p.cambio||'NOVEDAD'}</div>`:''}
+  ${p.rival?`<div style="font-size:13px;font-weight:600;margin-top:1px">🆚 vs ${p.rival}</div>`:''}
+  <div class="meta">🕘 ${p.hora} · 📍 ${p.cancha}${p.club2?' · 🤝 compartido con '+p.club2:''}</div></div>
+  <div class="right"><button class="btn sm" data-entregar="${p.id}">✅ Entregar</button><br>
+  <span class="pill ${p.edi?'edi':'noedi'}" style="margin-top:6px">${p.edi?'CON EDI':'SIN EDI'}</span></div></div>`;
+  return (clubComparte(p)&&!p.club2)?`<div class="mwrap">${row}${compartibleBanner(p)}</div>`:row;
+}
 function viewPerfil(v){
   const e=SESSION.emp,L=liquidacion(e.id);
   const mesNom=(()=>{const ym=(ST.mesLiq||"2026-08").split("-");return MESN[+ym[1]-1]})();
@@ -1024,7 +1038,7 @@ function viewPerfil(v){
     <div class="note">Cuando termines la edición, tocá <b>Entregar</b>. Ahí se te suma la edición.</div>
     <div>${paraEditar.map(p=>entregaCard(p,"editar")).join("")}</div>`:''}
     <div class="sectitle">📅 Partidos de hoy (${hoyList.length})</div>
-    <div>${hoyList.length?hoyList.map(p=>entregaCard(p,"entregar")).join(""):'<div class="empty">No tenés partidos hoy</div>'}</div>
+    <div>${hoyList.length?hoyList.map(hoyCard).join(""):'<div class="empty">No tenés partidos hoy</div>'}</div>
     <div class="sectitle">Mis próximos partidos (${prox.length})</div>
     <div>${prox.length?prox.map(matchCard).join(""):'<div class="empty">Sin partidos próximos</div>'}</div>
     <div class="sectitle">Mis objetivos <button class="btn sm ghost" id="addMiObj" style="float:right;margin-top:-4px">+ Ponerme uno</button></div>
