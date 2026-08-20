@@ -986,8 +986,9 @@ function viewPerfil(v){
   /* Se puede entregar cualquier partido de HOY o anterior que todavía no se entregó
      (sin depender de que el estado haya pasado a "filmado"). */
   const prox=mine.filter(p=>p.estado!=="entreg"&&String(p.fecha)>_hoy);
+  const hoyList=mine.filter(p=>p.estado!=="entreg"&&String(p.fecha)===_hoy);
   const hechos=mine.filter(p=>p.estado==="entreg").reverse();
-  const paraEntregar=mine.filter(p=>p.estado!=="entreg"&&String(p.fecha)<=_hoy);
+  const paraEntregar=mine.filter(p=>p.estado!=="entreg"&&String(p.fecha)<_hoy);   // solo los que YA pasaron
   const soyEditor=!!(e.roles&&e.roles.editor);
   const paraEditar=soyEditor?ST.partidos.filter(p=>p.editor===e.id&&String(p.fecha)<=_hoy&&p.estadoEdit!=="entreg").sort((a,b)=>a.fecha<b.fecha?-1:1):[];
   const nuevos=mine.filter(p=>p.nuevo).length;
@@ -1016,12 +1017,14 @@ function viewPerfil(v){
         ${L.comision?`<tr><td>Comisiones 2º equipo</td><td class="num">${money(L.comision)}</td></tr>`:''}
         <tr><td><b>Total</b></td><td class="num" style="color:var(--yellow)"><b>${money(L.total)}</b></td></tr>
       </tbody></table></div>
-    ${paraEntregar.length?`<div class="sectitle">✅ Para entregar (${paraEntregar.length})</div>
+    ${paraEntregar.length?`<div class="sectitle">✅ Para entregar · partidos ya jugados (${paraEntregar.length})</div>
     <div class="note">Cuando termines de subir el partido, tocá <b>Entregar</b>. Ahí se te suma la plata.</div>
     <div>${paraEntregar.map(p=>entregaCard(p,"entregar")).join("")}</div>`:''}
     ${soyEditor&&paraEditar.length?`<div class="sectitle">✂️ Para editar (${paraEditar.length})</div>
     <div class="note">Cuando termines la edición, tocá <b>Entregar</b>. Ahí se te suma la edición.</div>
     <div>${paraEditar.map(p=>entregaCard(p,"editar")).join("")}</div>`:''}
+    <div class="sectitle">📅 Partidos de hoy (${hoyList.length})</div>
+    <div>${hoyList.length?hoyList.map(p=>entregaCard(p,"entregar")).join(""):'<div class="empty">No tenés partidos hoy</div>'}</div>
     <div class="sectitle">Mis próximos partidos (${prox.length})</div>
     <div>${prox.length?prox.map(matchCard).join(""):'<div class="empty">Sin partidos próximos</div>'}</div>
     <div class="sectitle">Mis objetivos <button class="btn sm ghost" id="addMiObj" style="float:right;margin-top:-4px">+ Ponerme uno</button></div>
