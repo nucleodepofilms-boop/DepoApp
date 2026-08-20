@@ -625,6 +625,8 @@ const _clubDe=p=>ST.clubes.find(x=>_sa(x.club)===_sa(p.club));
 const _kc=s=>_sa(s).replace(/\s+/g,"");   // categoría sin espacios: "C20 / ORO"=="C20/Oro"
 function _catDe(p){var c=_clubDe(p);if(!c)return null;return (c.cats||[]).find(k=>_kc(k.cat)===_kc(p.cat))||null;}
 function clubComparte(p){var ct=_catDe(p);return ct?!!ct.comp:false;}
+/* Etiqueta chica de "compartido" para mostrar en cualquier tarjeta de partido. */
+function compChip(p){return clubComparte(p)?` <span class="pill comp" style="font-size:10px;padding:1px 7px;vertical-align:middle">🤝 COMPARTIDO</span>`:'';}
 /* Precio compartido: primero el que cargó el jefe a mano (precioComp del club);
    si no cargó ninguno, cae al % del individual para no mostrar $0. */
 function precioRival(p){var c=_clubDe(p);var ct=_catDe(p);
@@ -956,7 +958,7 @@ function matchCard(p){
   const f=fdShort(p.fecha);
   const est={prox:["prox","Próximo"],film:["film","Filmado"],entreg:["entreg","Entregado"]}[p.estado];
   const row=`<div class="match ${p.nuevo?'nuevo':''}"><div class="day"><div class="d">${f.d}</div><div class="m">${f.m}</div></div>
-  <div class="info"><div class="club">${p.club} <span style="color:var(--muted);font-weight:500">· ${p.cat}</span></div>
+  <div class="info"><div class="club">${p.club} <span style="color:var(--muted);font-weight:500">· ${p.cat}</span>${compChip(p)}</div>
   ${p.nuevo?`<div class="cambiotag">🔔 ${p.cambio||'NOVEDAD'}</div>`:''}
   ${p.rival?`<div style="font-size:13px;font-weight:600;margin-top:1px">🆚 vs ${p.rival}</div>`:''}
   <div class="meta">🕘 ${p.hora} · 📍 ${p.cancha}${p.club2?' · 🤝 compartido con '+p.club2:''}</div></div>
@@ -969,7 +971,7 @@ function entregaCard(p,tipo){
   const f=fdShort(p.fecha);
   const attr=tipo==="editar"?`data-editar="${p.id}"`:`data-entregar="${p.id}"`;
   return `<div class="match"><div class="day"><div class="d">${f.d}</div><div class="m">${f.m}</div></div>
-  <div class="info"><div class="club">${p.club} <span style="color:var(--muted);font-weight:500">· ${p.cat}</span></div>
+  <div class="info"><div class="club">${p.club} <span style="color:var(--muted);font-weight:500">· ${p.cat}</span>${compChip(p)}</div>
   ${p.rival?`<div style="font-size:13px;font-weight:600;margin-top:1px">🆚 vs ${p.rival}</div>`:''}
   <div class="meta">🕘 ${p.hora} · 📍 ${p.cancha}${p.club2?' · 🤝 '+p.club2:''}</div></div>
   <div class="right"><button class="btn sm" ${attr}>✅ Entregar</button></div></div>`
