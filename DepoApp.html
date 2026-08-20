@@ -453,6 +453,19 @@ function _firma(fe,ho,cl,ca,cn){return _sa([fe,ho,cl,ca,cn].join("|"));}
   (ST.clubes||[]).forEach(function(c){ c.comparte=false; (c.cats||[]).forEach(function(k){ k.comp=false; }); });
   saveState();
 })();
+/* Compartido POR CATEGORÍA: si el club estaba marcado a nivel club (a mano) pero
+   ninguna categoría, lo paso a todas sus categorías (con su precio). El flag del
+   club pasa a ser derivado: comparte si al menos una categoría comparte. No borra nada. */
+(function migCompartidoCat(){ if(ST.migV>=8) return; ST.migV=8;
+  (ST.clubes||[]).forEach(function(c){
+    var anyCat=(c.cats||[]).some(function(k){return !!k.comp;});
+    if(c.comparte && !anyCat){
+      (c.cats||[]).forEach(function(k){ k.comp=true; if(+c.precioComp&&!+k.precioComp) k.precioComp=+c.precioComp; });
+    }
+    c.comparte=(c.cats||[]).some(function(k){return !!k.comp;});
+  });
+  saveState();
+})();
 
 /* "ENZO NUÑEZ" -> "enzo"  ·  "GASTON CHECHI" -> "jefe" */
 function empIdPorNombre(txt){
@@ -609,10 +622,18 @@ const pctCompartido=p=>Math.round(p*ST.config.compartidoPct/100);
 const _clubDe=p=>ST.clubes.find(x=>_sa(x.club)===_sa(p.club));
 /* ¿Comparte este club? Lo decide el jefe a mano (botón 🤝 Compartidos / Editar club).
    Ya no hay nada hardcodeado: si el jefe no lo marcó, NO comparte. */
-function clubComparte(p){var c=_clubDe(p);return c?!!c.comparte:false;}
+const _kc=s=>_sa(s).replace(/\s+/g,"");   // categoría sin espacios: "C20 / ORO"=="C20/Oro"
+function _catDe(p){var c=_clubDe(p);if(!c)return null;return (c.cats||[]).find(k=>_kc(k.cat)===_kc(p.cat))||null;}
+function clubComparte(p){var ct=_catDe(p);return ct?!!ct.comp:false;}
 /* Precio compartido: primero el que cargó el jefe a mano (precioComp del club);
    si no cargó ninguno, cae al % del individual para no mostrar $0. */
-function precioRival(p){var c=_clubDe(p);if(c&&+c.precioComp)return +c.precioComp;if(c){var ct=(c.cats||[]).find(k=>_sa(k.cat)===_sa(p.cat));if(ct&&+ct.precio)return pctCompartido(+ct.precio);var alt=(c.cats||[]).find(k=>+k.precio);if(alt)return pctCompartido(+alt.precio);}if(+p.precio)return pctCompartido(+p.precio);try{var g=precioSugerido(p);if(g&&g.total)return pctCompartido(g.total);}catch(e){}return 0;}
+function precioRival(p){var c=_clubDe(p);var ct=_catDe(p);
+  if(ct&&+ct.precioComp)return +ct.precioComp;      // precio a mano de ESA categoría
+  if(c&&+c.precioComp)return +c.precioComp;           // precio a mano del club (compatibilidad)
+  if(ct&&+ct.precio)return pctCompartido(+ct.precio); // si no, % del individual de la categoría
+  if(c){var alt=(c.cats||[]).find(k=>+k.precio);if(alt)return pctCompartido(+alt.precio);}
+  if(+p.precio)return pctCompartido(+p.precio);
+  try{var g=precioSugerido(p);if(g&&g.total)return pctCompartido(g.total);}catch(e){}return 0;}
 function compartibleBanner(p){return `<div class="compartible"><div class="top">🤝 PARTIDO COMPARTIBLE</div>`+
   `<div>Si el rival también lo quiere, cobrale <span class="amt">${money(precioRival(p))}</span></div>`+
   `<small>📲 Pedile el contacto o que transfiera al toque · Alias: <b class="alias">depofilms</b></small></div>`;}
@@ -1152,7 +1173,7 @@ function movModal(id){
 function viewClientes(v){
   const deps=[...new Set(ST.clubes.map(c=>c.deporte))];
   v.innerHTML=`<div class="pagetitle">Clientes <small>${ST.clubes.length} clubes · precio individual y compartido por categoría</small></div>
-    <div class="note">🤝 "Autoriza compartir" = te dio el OK para ofrecerle el partido al rival sin consultarle cada vez. El precio compartido se calcula al ${ST.config.compartidoPct}% del individual (lo cambiás en Ajustes).</div>
+    <div class="note">🤝 Compartir se marca por categoría (botón "Compartidos" o el lápiz de cada una). Poné el precio que paga cada equipo a mano; si lo dejás vacío, usa el ${ST.config.compartidoPct}% del individual.</div>
     <div class="flexbtns" style="margin-bottom:12px"><button class="btn sm" id="addClub">+ Sumar club</button><button class="btn sm" id="compBtn">🤝 Compartidos</button><button class="btn sm ghost" id="aplicarAum">Aplicar +${ST.config.aumentoPct}% a todos</button></div>
     <div id="clubZone"></div>`;
   const z=$("#clubZone");
@@ -1168,12 +1189,14 @@ function viewClientes(v){
 }
 function clubCard(c){
   const i=ST.clubes.indexOf(c);
+  const nc=c.cats.length, nComp=(c.cats||[]).filter(k=>k.comp).length;
+  const compTxt=nComp===0?'':(nComp===nc?'· 🤝 comparten todas':'· 🤝 '+nComp+' de '+nc+' comparten');
   return `<div class="clubcard" data-ci="${i}"><div class="clubhead"><span class="arw">▶</span>
-  <div class="nm">${c.club} <small>${c.cats.length} cat. · ${c.contacto||'—'} ${c.comparte?'· 🤝 comparte':''}</small></div>
+  <div class="nm">${c.club} <small>${nc} cat. · ${c.contacto||'—'} ${compTxt}</small></div>
   <span class="badge ${c.estado.toLowerCase()}">${c.estado}</span></div>
-  <div class="clubbody"><div style="font-size:12px;color:var(--muted);margin:4px 0 6px">${c.pago} · Autoriza compartir: <b style="color:${c.comparte?'var(--green)':'var(--red)'}">${c.comparte?'SÍ':'NO'}</b></div>
-  ${c.cats.map((ct,j)=>`<div class="catrow"><div class="cn"><b>${ct.cat}</b><small>${ct.local} · ${ct.edi?'Con edición':'Sin edición'}${ct.cancha&&ct.cancha!=='—'?' · '+ct.cancha:''}</small></div>
-  <div class="pr">${money(ct.precio)}${c.comparte?`<small>compartido ${money(c.precioComp||pctCompartido(ct.precio))} c/u</small>`:''}</div>
+  <div class="clubbody"><div style="font-size:12px;color:var(--muted);margin:4px 0 6px">${c.pago} · Comparten: <b style="color:${nComp?'var(--green)':'var(--red)'}">${nComp?nComp+' de '+nc+' categorías':'ninguna'}</b></div>
+  ${c.cats.map((ct,j)=>`<div class="catrow"><div class="cn"><b>${ct.cat}</b>${ct.comp?' <span class="pill comp">🤝 comparte</span>':''}<small>${ct.local} · ${ct.edi?'Con edición':'Sin edición'}${ct.cancha&&ct.cancha!=='—'?' · '+ct.cancha:''}</small></div>
+  <div class="pr">${money(ct.precio)}${ct.comp?`<small>compartido ${money(+ct.precioComp||pctCompartido(ct.precio))} c/u</small>`:''}</div>
   <button class="btn sm ghost" data-ecat="${i}:${j}">✎</button></div>`).join("")}
   <div class="flexbtns" style="margin-top:10px"><button class="btn sm" data-acat="${i}">+ Categoría</button>
   <button class="btn sm ghost" data-eclub="${i}">Editar club</button><button class="btn sm danger" data-rclub="${i}">Borrar</button></div></div></div>`
@@ -1185,20 +1208,24 @@ function bindClubs(z){
   z.querySelectorAll("[data-eclub]").forEach(b=>b.onclick=()=>clubModal(+b.dataset.eclub));
   z.querySelectorAll("[data-rclub]").forEach(b=>b.onclick=()=>{const c=ST.clubes[+b.dataset.rclub];if(confirm("¿Borrar "+c.club+"?")){ST.clubes.splice(+b.dataset.rclub,1);saveState();go("clientes")}});
 }
-/* Panel para marcar a mano qué clubes comparten y con qué precio por equipo. */
+/* Panel para marcar a mano qué CATEGORÍAS comparten y con qué precio por equipo. */
 function compartidosModal(){
   const orden=[...ST.clubes].map((c,i)=>({c,i})).sort((a,b)=>a.c.club.localeCompare(b.c.club));
-  const rows=orden.map(({c,i})=>`<label class="chkline ${c.comparte?'on':''}" style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-    <span><input type="checkbox" data-cc="${i}" ${c.comparte?'checked':''}> ${c.club}</span>
-    <input type="number" data-cp="${i}" value="${c.precioComp||''}" placeholder="precio c/u" style="width:130px"></label>`).join("");
-  openModal(`<h3>🤝 Equipos que comparten</h3>
-    <div class="note">Marcá los que comparten y ponéle el precio que paga cada equipo. Si dejás el precio vacío, usa el ${ST.config.compartidoPct}% del individual.</div>
-    <div style="max-height:52vh;overflow:auto;margin-top:8px">${rows}</div>
+  const rows=orden.map(({c,i})=>{
+    const cats=(c.cats||[]).map((ct,j)=>`<label class="chkline ${ct.comp?'on':''}" style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-left:14px">
+      <span><input type="checkbox" data-cc="${i}:${j}" ${ct.comp?'checked':''}> ${ct.cat}</span>
+      <input type="number" data-cp="${i}:${j}" value="${ct.precioComp||''}" placeholder="precio c/u" style="width:120px"></label>`).join("");
+    return `<div style="margin-top:12px"><b style="color:var(--yellow)">${c.club}</b>${cats||'<div style="color:var(--muted);font-size:12px;margin-left:14px">sin categorías</div>'}</div>`;
+  }).join("");
+  openModal(`<h3>🤝 Categorías que comparten</h3>
+    <div class="note">Marcá cada categoría que comparte y ponéle el precio que paga cada equipo. Si dejás el precio vacío, usa el ${ST.config.compartidoPct}% del individual.</div>
+    <div style="max-height:56vh;overflow:auto;margin-top:8px">${rows}</div>
     <div class="flexbtns" style="margin-top:12px"><button class="btn" id="ccSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`);
   document.querySelectorAll("[data-cc]").forEach(ch=>ch.onchange=e=>e.target.closest(".chkline").classList.toggle("on",e.target.checked));
   $("#ccSave").onclick=()=>{
-    document.querySelectorAll("[data-cc]").forEach(ch=>{ST.clubes[+ch.dataset.cc].comparte=ch.checked});
-    document.querySelectorAll("[data-cp]").forEach(ip=>{ST.clubes[+ip.dataset.cp].precioComp=+ip.value||0});
+    document.querySelectorAll("[data-cc]").forEach(ch=>{const[i,j]=ch.dataset.cc.split(":").map(Number);ST.clubes[i].cats[j].comp=ch.checked;});
+    document.querySelectorAll("[data-cp]").forEach(ip=>{const[i,j]=ip.dataset.cp.split(":").map(Number);ST.clubes[i].cats[j].precioComp=+ip.value||0;});
+    ST.clubes.forEach(c=>{c.comparte=(c.cats||[]).some(k=>!!k.comp);});
     saveState();closeModal();go("clientes");
   };
 }
@@ -1210,13 +1237,11 @@ function clubModal(idx){
   <div class="field"><label>Estado</label><select id="cE">${["ACTIVO","RIESGO","INACTIVO"].map(x=>`<option ${x===c.estado?'selected':''}>${x}</option>`).join("")}</select></div></div>
   <div class="row2"><div class="field"><label>Tipo de pago</label><select id="cP">${["Mensual","Partido a partido"].map(x=>`<option ${x===c.pago?'selected':''}>${x}</option>`).join("")}</select></div>
   <div class="field"><label>Contacto</label><input id="cC" value="${c.contacto||''}"></div></div>
-  <label class="chkline ${c.comparte?'on':''}"><input type="checkbox" id="cComp" ${c.comparte?'checked':''}> 🤝 Este club comparte partidos</label>
-  <div class="field"><label>Precio compartido por equipo (opcional)</label><input id="cCompP" type="number" value="${c.precioComp||''}" placeholder="Vacío = ${ST.config.compartidoPct}% del individual"></div>
+  <div class="note">🤝 Los partidos compartidos se marcan por categoría (botón "Compartidos" o el lápiz de cada categoría).</div>
   <div class="flexbtns" style="margin-top:12px"><button class="btn" id="cSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button></div>`);
-  $("#cComp").onchange=e=>e.target.parentElement.classList.toggle("on",e.target.checked);
   $("#cSave").onclick=()=>{const n=$("#cN").value.trim();if(!n)return;
-    const d={club:n,deporte:$("#cD").value.trim()||"Futsal",estado:$("#cE").value,pago:$("#cP").value,contacto:$("#cC").value.trim(),comparte:$("#cComp").checked,precioComp:+$("#cCompP").value||0};
-    if(nuevo)ST.clubes.push({...d,cats:[]});else Object.assign(c,d);saveState();closeModal();go("clientes")};
+    const d={club:n,deporte:$("#cD").value.trim()||"Futsal",estado:$("#cE").value,pago:$("#cP").value,contacto:$("#cC").value.trim()};
+    if(nuevo)ST.clubes.push({...d,cats:[],comparte:false});else Object.assign(c,d);saveState();closeModal();go("clientes")};
 }
 function catModal(i,j){
   const club=ST.clubes[i],nuevo=j==null;
@@ -1229,12 +1254,15 @@ function catModal(i,j){
   <div class="row2"><div class="field"><label>Filmamos</label><select id="tL">${["Local","Local y visitante"].map(x=>`<option ${x===ct.local?'selected':''}>${x}</option>`).join("")}</select></div>
   <div class="field"><label>Cancha</label><input id="tC" value="${ct.cancha||''}"></div></div>
   <label class="chkline ${ct.comp?'on':''}" style="margin-top:8px"><input type="checkbox" id="tComp" ${ct.comp?'checked':''}> 🤝 Este cliente autoriza compartir este partido con el rival</label>
+  <div class="field"><label>Precio compartido por equipo (a mano, opcional)</label><input id="tCompP" type="number" value="${ct.precioComp||''}" placeholder="Vacío = ${ST.config.compartidoPct}% del individual"></div>
   <div class="flexbtns"><button class="btn" id="tSave">Guardar</button><button class="btn ghost" onclick="closeModal()">Cancelar</button>
   ${nuevo?'':'<button class="btn danger" id="tDel">Borrar</button>'}</div>`);
   $("#tP").oninput=()=>{$("#tInfo").textContent="Compartido: "+money(pctCompartido(+$("#tP").value||0))+" cada equipo"};
   $("#tSave").onclick=()=>{const n=$("#tN").value.trim();if(!n)return;
-    const d={cat:n,precio:+$("#tP").value,edi:$("#tE").value==="si",local:$("#tL").value,cancha:$("#tC").value.trim(),comp:$("#tComp").checked};
-    if(nuevo)club.cats.push(d);else Object.assign(ct,d);saveState();closeModal();go("clientes")};
+    const d={cat:n,precio:+$("#tP").value,edi:$("#tE").value==="si",local:$("#tL").value,cancha:$("#tC").value.trim(),comp:$("#tComp").checked,precioComp:+$("#tCompP").value||0};
+    if(nuevo)club.cats.push(d);else Object.assign(ct,d);
+    club.comparte=(club.cats||[]).some(k=>!!k.comp);
+    saveState();closeModal();go("clientes")};
   if(!nuevo)$("#tDel").onclick=()=>{club.cats.splice(j,1);saveState();closeModal();go("clientes")};
 }
 
