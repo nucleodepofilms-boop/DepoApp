@@ -565,7 +565,7 @@ async function guardarEnExcel(p){
       actor:(SESSION?(SESSION.role==="jefe"?"jefe":(SESSION.emp?SESSION.emp.id:"")):""),
       avisaJefe:(SESSION&&SESSION.role!=="jefe")?1:0};
     const url=BACKEND_URL+"?action=guardar&token="+encodeURIComponent(BACKEND_TOKEN)+"&data="+encodeURIComponent(JSON.stringify(partido));
-    const r=await fetch(url);
+    const r=await fetchT(url,{},20000);
     return await r.json();
   }catch(e){ return{ok:false,error:String(e)} }
 }
@@ -580,7 +580,7 @@ async function confirmarPush(p){
 async function pushPendientes(){
   const pend=(ST.partidos||[]).filter(p=>p.needsPush);
   if(!pend.length) return;
-  for(const p of pend){ try{ const r=await guardarEnExcel(p); if(r&&r.ok) p.needsPush=false; }catch(e){} }
+  for(const p of pend){ try{ const r=await guardarEnExcel(p); if(r&&r.ok){ p.needsPush=false; } else { break; } }catch(e){ break; } }
   saveState();
 }
 
@@ -602,8 +602,10 @@ async function appPull(){
     const r=await fetchT(BACKEND_URL+"?action=appget&token="+encodeURIComponent(BACKEND_TOKEN),{},15000);
     const d=await r.json(); if(!d||!d.ok||!d.data) return;
     let cambio=false;
-    if(d.data.compartidos){ try{ aplicarCompartidos(JSON.parse(d.data.compartidos)); cambio=true; }catch(e){} }
-    else if(SESSION&&SESSION.role==="jefe"){ appPushCompartidos(); }  // bootstrap: sube lo que ya tenías
+    // COMPARTIDOS: el jefe es la fuente de verdad -> SIEMPRE publica lo suyo.
+    // Los empleados SIEMPRE aplican lo que publicó el jefe.
+    if(SESSION && SESSION.role==="jefe"){ appPushCompartidos(); }
+    else if(d.data.compartidos){ try{ aplicarCompartidos(JSON.parse(d.data.compartidos)); cambio=true; }catch(e){} }
     ST.avatares=ST.avatares||{};
     Object.keys(d.data).forEach(function(k){ if(k.indexOf("avatar:")===0){ var id=k.slice(7),v=d.data[k]; if(v&&ST.avatares[id]!==v){ ST.avatares[id]=v; cambio=true; } } });
     if(cambio) saveState();
