@@ -534,6 +534,7 @@ async function sincronizar(silencioso){
     if(!d.ok) throw new Error(d.error||"respuesta inválida");
     const res=aplicarRemotos(d.partidos);
     await appPull();                       // compartidos + fotos, iguales para todos
+    subirMiAvatar();                       // sube la foto propia si ya estaba de antes
     saveState(); SYNC_OK=true;
     SYNC_MSG="Excel sincronizado "+new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"});
     if(!silencioso){
@@ -611,6 +612,14 @@ async function appPushAvatar(id,dataURL){
   try{ await fetch(BACKEND_URL+"?action=appset&token="+encodeURIComponent(BACKEND_TOKEN),{
     method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
     body:JSON.stringify({token:BACKEND_TOKEN,action:"appset",key:"avatar:"+id,value:dataURL})}); }catch(e){}
+}
+/* Sube la foto propia si ya estaba guardada de antes (para no tener que volver a cargarla). */
+function subirMiAvatar(){
+  try{ if(!SESSION) return; var id=SESSION.role==="jefe"?"jefe":(SESSION.emp&&SESSION.emp.id); if(!id) return;
+    var v=(ST.avatares||{})[id]; if(!v) return;
+    ST._avPush=ST._avPush||{}; var sig=""+v.length;
+    if(ST._avPush[id]!==sig){ appPushAvatar(id,v); ST._avPush[id]=sig; saveState(); }
+  }catch(e){}
 }
 /* Borra un partido del Excel (y Scorify no lo vuelve a cargar) */
 async function borrarEnExcel(id){ if(!id)return; try{ await fetch(BACKEND_URL+"?action=borrar&token="+encodeURIComponent(BACKEND_TOKEN)+"&id="+encodeURIComponent(id)); }catch(e){} }
