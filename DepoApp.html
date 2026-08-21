@@ -34,6 +34,8 @@
   .avatar{width:40px;height:40px;border-radius:50%;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--yellow);font-size:15px;border:1px solid var(--line)}
   .avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover}
   .who small{color:var(--muted);font-weight:500;font-size:11.5px}
+  .who button .avatar{width:84px;height:84px;font-size:30px;border-width:2px}
+  .who button span{font-size:15px}
   #pinPad{width:100%;max-width:320px;text-align:center}
   #pinPad h3{margin:6px 0 2px}#pinPad p{color:var(--muted);margin:0 0 8px;font-size:13px}
   .pindots{display:flex;gap:12px;justify-content:center;margin:16px 0}
@@ -531,6 +533,7 @@ async function sincronizar(silencioso){
     const d=await r.json();
     if(!d.ok) throw new Error(d.error||"respuesta inválida");
     const res=aplicarRemotos(d.partidos);
+    await appPull();                       // compartidos + fotos, iguales para todos
     saveState(); SYNC_OK=true;
     SYNC_MSG="Excel sincronizado "+new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"});
     if(!silencioso){
@@ -554,6 +557,7 @@ async function guardarEnExcel(p){
       editor:nombrePorEmpId(p.editor),editorId:p.editor,edi:p.edi,todo:!!p.todo,pagado:p.pagado,
       estado:p.estado||"",estadoEdit:p.estadoEdit||"",
       entregado:(p.estado==="entreg"),editado:(p.estadoEdit==="entreg"),
+      actor:(SESSION?(SESSION.role==="jefe"?"jefe":(SESSION.emp?SESSION.emp.id:"")):""),
       avisaJefe:(SESSION&&SESSION.role!=="jefe")?1:0};
     const url=BACKEND_URL+"?action=guardar&token="+encodeURIComponent(BACKEND_TOKEN)+"&data="+encodeURIComponent(JSON.stringify(partido));
     const r=await fetch(url);
@@ -573,6 +577,40 @@ async function pushPendientes(){
   if(!pend.length) return;
   for(const p of pend){ try{ const r=await guardarEnExcel(p); if(r&&r.ok) p.needsPush=false; }catch(e){} }
   saveState();
+}
+
+/* ====== ESTADO COMPARTIDO: compartidos + fotos, iguales en todos los celulares ====== */
+function compartidosMap(){
+  var m={}; (ST.clubes||[]).forEach(function(c){ (c.cats||[]).forEach(function(k){
+    if(k.comp||+k.precioComp) m[_sa(c.club)+"||"+_kc(k.cat)]={c:k.comp?1:0,p:+k.precioComp||0};
+  }); }); return m;
+}
+function aplicarCompartidos(map){
+  if(!map) return;
+  (ST.clubes||[]).forEach(function(c){ (c.cats||[]).forEach(function(k){
+    var e=map[_sa(c.club)+"||"+_kc(k.cat)];
+    k.comp=!!(e&&e.c); k.precioComp=e?(+e.p||0):0;
+  }); c.comparte=(c.cats||[]).some(function(x){return !!x.comp;}); });
+}
+async function appPull(){
+  try{
+    const r=await fetch(BACKEND_URL+"?action=appget&token="+encodeURIComponent(BACKEND_TOKEN));
+    const d=await r.json(); if(!d||!d.ok||!d.data) return;
+    let cambio=false;
+    if(d.data.compartidos){ try{ aplicarCompartidos(JSON.parse(d.data.compartidos)); cambio=true; }catch(e){} }
+    else if(SESSION&&SESSION.role==="jefe"){ appPushCompartidos(); }  // bootstrap: sube lo que ya tenías
+    ST.avatares=ST.avatares||{};
+    Object.keys(d.data).forEach(function(k){ if(k.indexOf("avatar:")===0){ var id=k.slice(7),v=d.data[k]; if(v&&ST.avatares[id]!==v){ ST.avatares[id]=v; cambio=true; } } });
+    if(cambio) saveState();
+  }catch(e){}
+}
+async function appPushCompartidos(){
+  try{ await fetch(BACKEND_URL+"?action=appset&token="+encodeURIComponent(BACKEND_TOKEN)+"&key=compartidos&value="+encodeURIComponent(JSON.stringify(compartidosMap()))); }catch(e){}
+}
+async function appPushAvatar(id,dataURL){
+  try{ await fetch(BACKEND_URL+"?action=appset&token="+encodeURIComponent(BACKEND_TOKEN),{
+    method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify({token:BACKEND_TOKEN,action:"appset",key:"avatar:"+id,value:dataURL})}); }catch(e){}
 }
 /* Borra un partido del Excel (y Scorify no lo vuelve a cargar) */
 async function borrarEnExcel(id){ if(!id)return; try{ await fetch(BACKEND_URL+"?action=borrar&token="+encodeURIComponent(BACKEND_TOKEN)+"&id="+encodeURIComponent(id)); }catch(e){} }
@@ -1067,7 +1105,7 @@ function viewPerfil(v){
   }
   var cf=$("#cambiarFoto");if(cf){cf.onclick=()=>$("#fotoInput").click();
     $("#fotoInput").onchange=ev=>{const f=ev.target.files[0];if(!f)return;
-      const r=new FileReader();r.onload=()=>{redimFoto(r.result,256,d=>{ST.avatares=ST.avatares||{};ST.avatares[e.id]=d;saveState();viewPerfil(v)})};r.readAsDataURL(f)};}
+      const r=new FileReader();r.onload=()=>{redimFoto(r.result,256,d=>{ST.avatares=ST.avatares||{};ST.avatares[e.id]=d;saveState();appPushAvatar(e.id,d);viewPerfil(v)})};r.readAsDataURL(f)};}
 }
 /* Achica la foto a un cuadrado chico para que no pese */
 function redimFoto(dataUrl,size,cb){const im=new Image();im.onload=()=>{const c=document.createElement("canvas");c.width=size;c.height=size;const g=c.getContext("2d");const m=Math.min(im.width,im.height);g.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,size,size);cb(c.toDataURL("image/jpeg",0.82))};im.src=dataUrl;}
@@ -1247,7 +1285,7 @@ function compartidosModal(){
     document.querySelectorAll("[data-cc]").forEach(ch=>{const[i,j]=ch.dataset.cc.split(":").map(Number);ST.clubes[i].cats[j].comp=ch.checked;});
     document.querySelectorAll("[data-cp]").forEach(ip=>{const[i,j]=ip.dataset.cp.split(":").map(Number);ST.clubes[i].cats[j].precioComp=+ip.value||0;});
     ST.clubes.forEach(c=>{c.comparte=(c.cats||[]).some(k=>!!k.comp);});
-    saveState();closeModal();go("clientes");
+    saveState();appPushCompartidos();closeModal();go("clientes");
   };
 }
 function clubModal(idx){
@@ -1283,7 +1321,7 @@ function catModal(i,j){
     const d={cat:n,precio:+$("#tP").value,edi:$("#tE").value==="si",local:$("#tL").value,cancha:$("#tC").value.trim(),comp:$("#tComp").checked,precioComp:+$("#tCompP").value||0};
     if(nuevo)club.cats.push(d);else Object.assign(ct,d);
     club.comparte=(club.cats||[]).some(k=>!!k.comp);
-    saveState();closeModal();go("clientes")};
+    saveState();appPushCompartidos();closeModal();go("clientes")};
   if(!nuevo)$("#tDel").onclick=()=>{club.cats.splice(j,1);saveState();closeModal();go("clientes")};
 }
 
