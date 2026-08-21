@@ -526,10 +526,14 @@ function aplicarRemotos(lista){
   return{nuevos,cambios};
 }
 
+/* fetch con timeout: si una llamada tarda demasiado (Apps Script frío / mala señal)
+   la cortamos, así la app nunca queda colgada en "cargando". */
+function fetchT(url,opts,ms){ opts=opts||{}; ms=ms||15000; var ac=new AbortController(); var t=setTimeout(function(){ac.abort();},ms);
+  return fetch(url,Object.assign({},opts,{signal:ac.signal})).finally(function(){clearTimeout(t);}); }
 async function sincronizar(silencioso){
   try{
     await pushPendientes();
-    const r=await fetch(BACKEND_URL+"?action=partidos&token="+encodeURIComponent(BACKEND_TOKEN));
+    const r=await fetchT(BACKEND_URL+"?action=partidos&token="+encodeURIComponent(BACKEND_TOKEN),{},20000);
     const d=await r.json();
     if(!d.ok) throw new Error(d.error||"respuesta inválida");
     const res=aplicarRemotos(d.partidos);
@@ -595,7 +599,7 @@ function aplicarCompartidos(map){
 }
 async function appPull(){
   try{
-    const r=await fetch(BACKEND_URL+"?action=appget&token="+encodeURIComponent(BACKEND_TOKEN));
+    const r=await fetchT(BACKEND_URL+"?action=appget&token="+encodeURIComponent(BACKEND_TOKEN),{},15000);
     const d=await r.json(); if(!d||!d.ok||!d.data) return;
     let cambio=false;
     if(d.data.compartidos){ try{ aplicarCompartidos(JSON.parse(d.data.compartidos)); cambio=true; }catch(e){} }
@@ -609,9 +613,9 @@ async function appPushCompartidos(){
   try{ await fetch(BACKEND_URL+"?action=appset&token="+encodeURIComponent(BACKEND_TOKEN)+"&key=compartidos&value="+encodeURIComponent(JSON.stringify(compartidosMap()))); }catch(e){}
 }
 async function appPushAvatar(id,dataURL){
-  try{ await fetch(BACKEND_URL+"?action=appset&token="+encodeURIComponent(BACKEND_TOKEN),{
+  try{ await fetchT(BACKEND_URL+"?action=appset&token="+encodeURIComponent(BACKEND_TOKEN),{
     method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify({token:BACKEND_TOKEN,action:"appset",key:"avatar:"+id,value:dataURL})}); }catch(e){}
+    body:JSON.stringify({token:BACKEND_TOKEN,action:"appset",key:"avatar:"+id,value:dataURL})},20000); }catch(e){}
 }
 /* Sube la foto propia si ya estaba guardada de antes (para no tener que volver a cargarla). */
 function subirMiAvatar(){
