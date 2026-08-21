@@ -531,24 +531,29 @@ function aplicarRemotos(lista){
 function fetchT(url,opts,ms){ opts=opts||{}; ms=ms||15000; var ac=new AbortController(); var t=setTimeout(function(){ac.abort();},ms);
   return fetch(url,Object.assign({},opts,{signal:ac.signal})).finally(function(){clearTimeout(t);}); }
 async function sincronizar(silencioso){
+  let okPart=false, res={nuevos:0,cambios:0}, total=0, errMsg="";
+  try{ await pushPendientes(); }catch(e){}
+  // 1) Bajar partidos (si falla, seguimos igual con fotos/compartidos)
   try{
-    await pushPendientes();
-    const r=await fetchT(BACKEND_URL+"?action=partidos&token="+encodeURIComponent(BACKEND_TOKEN),{},20000);
+    const r=await fetchT(BACKEND_URL+"?action=partidos&token="+encodeURIComponent(BACKEND_TOKEN),{},45000);
     const d=await r.json();
     if(!d.ok) throw new Error(d.error||"respuesta inválida");
-    const res=aplicarRemotos(d.partidos);
-    await appPull();                       // compartidos + fotos, iguales para todos
-    subirMiAvatar();                       // sube la foto propia si ya estaba de antes
-    saveState(); SYNC_OK=true;
-    SYNC_MSG="Excel sincronizado "+new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"});
+    res=aplicarRemotos(d.partidos); total=d.total; okPart=true;
+  }catch(e){ errMsg=e.message||String(e); }
+  // 2) Bajar fotos + compartidos (aunque los partidos hayan fallado)
+  try{ await appPull(); subirMiAvatar(); }catch(e){}
+  saveState();
+  if(okPart){
+    SYNC_OK=true; SYNC_MSG="Excel sincronizado "+new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"});
     if(!silencioso){
       if(SESSION && SESSION.role==="empleado"){ alert("✅ Actualizado"); }
-      else { alert("✅ Sincronizado con el Excel\n\n"+d.total+" partidos leídos\nNuevos: "+res.nuevos+"\nActualizados: "+res.cambios); }
-      refrescarVista();
-    }else if(res.nuevos+res.cambios>0){ refrescarVista() }
-  }catch(e){
+      else { alert("✅ Sincronizado con el Excel\n\n"+total+" partidos leídos\nNuevos: "+res.nuevos+"\nActualizados: "+res.cambios); }
+    }
+    refrescarVista();
+  }else{
     SYNC_OK=false; SYNC_MSG="Sin conexión con el Excel";
-    if(!silencioso) alert("No pude sincronizar.\n\n"+e.message);
+    if(!silencioso) alert("No pude sincronizar.\n\n"+errMsg);
+    refrescarVista();   // igual refrescamos por si bajaron fotos/compartidos
   }
 }
 
@@ -565,7 +570,7 @@ async function guardarEnExcel(p){
       actor:(SESSION?(SESSION.role==="jefe"?"jefe":(SESSION.emp?SESSION.emp.id:"")):""),
       avisaJefe:(SESSION&&SESSION.role!=="jefe")?1:0};
     const url=BACKEND_URL+"?action=guardar&token="+encodeURIComponent(BACKEND_TOKEN)+"&data="+encodeURIComponent(JSON.stringify(partido));
-    const r=await fetchT(url,{},20000);
+    const r=await fetchT(url,{},45000);
     return await r.json();
   }catch(e){ return{ok:false,error:String(e)} }
 }
@@ -599,7 +604,7 @@ function aplicarCompartidos(map){
 }
 async function appPull(){
   try{
-    const r=await fetchT(BACKEND_URL+"?action=appget&token="+encodeURIComponent(BACKEND_TOKEN),{},15000);
+    const r=await fetchT(BACKEND_URL+"?action=appget&token="+encodeURIComponent(BACKEND_TOKEN),{},45000);
     const d=await r.json(); if(!d||!d.ok||!d.data) return;
     let cambio=false;
     // COMPARTIDOS: el jefe es la fuente de verdad -> SIEMPRE publica lo suyo.
@@ -617,7 +622,7 @@ async function appPushCompartidos(){
 async function appPushAvatar(id,dataURL){
   try{ await fetchT(BACKEND_URL+"?action=appset&token="+encodeURIComponent(BACKEND_TOKEN),{
     method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify({token:BACKEND_TOKEN,action:"appset",key:"avatar:"+id,value:dataURL})},20000); }catch(e){}
+    body:JSON.stringify({token:BACKEND_TOKEN,action:"appset",key:"avatar:"+id,value:dataURL})},45000); }catch(e){}
 }
 /* Sube la foto propia si ya estaba guardada de antes (para no tener que volver a cargarla). */
 function subirMiAvatar(){
