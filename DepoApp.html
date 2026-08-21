@@ -184,7 +184,8 @@
     <div class="logomark" id="topLogo"></div><div class="spacer"></div>
     <button class="iconbtn" id="syncBtn" title="Sincronizar con el Excel">↻</button>
     <button class="iconbtn hidden" id="gearBtn" title="Ajustes">⚙</button>
-    <div class="userchip"><div class="avatar" id="uAvatar"></div><span id="uName"></span><span class="roletag" id="uRole"></span></div>
+    <div class="userchip"><div class="avatar" id="uAvatar" title="Cambiar foto" style="cursor:pointer"></div><span id="uName"></span><span class="roletag" id="uRole"></span></div>
+    <input type="file" id="uFotoInput" accept="image/*" style="display:none">
     <button class="iconbtn" id="logoutBtn" title="Salir">⏻</button>
   </div>
   <main id="view"></main>
@@ -957,6 +958,15 @@ function enterApp(){
   $("#topLogo").innerHTML=logoFull(26);
   $("#uAvatar").innerHTML=avatarInner(SESSION.emp.id,SESSION.emp.nombre);
   $("#uName").textContent=SESSION.emp.nombre.split(" ")[0];
+  /* Tocar el avatar del encabezado = cambiar foto (sirve para el jefe y de atajo para todos). */
+  $("#uAvatar").onclick=()=>{const inp=$("#uFotoInput");if(inp)inp.click();};
+  $("#uFotoInput").onchange=ev=>{const f=ev.target.files[0];if(!f)return;
+    const r=new FileReader();r.onload=()=>{redimFoto(r.result,256,d=>{
+      const id=SESSION.emp.id; ST.avatares=ST.avatares||{}; ST.avatares[id]=d;
+      ST._avPush=ST._avPush||{}; ST._avPush[id]=""+d.length;
+      saveState(); appPushAvatar(id,d);
+      $("#uAvatar").innerHTML=avatarInner(id,SESSION.emp.nombre); refrescarVista();
+    })};r.readAsDataURL(f)};
   const rt=$("#uRole");rt.textContent="";rt.className="roletag hidden";
   $("#gearBtn").classList.toggle("hidden",SESSION.role!=="jefe");
   if(SESSION.role==="jefe"){pushLoginEmpleado("jefe");buildNav();$("#nav").classList.remove("hidden");go("resumen");sincronizarCaja()}
