@@ -780,8 +780,9 @@ function liquidacion(empId,ym){
   });
   const transporte=salidas*(+t.transporte||0)+plusLejana;
 
-  /* Edición — SOLO cuenta cuando el editor marcó ENTREGADO */
-  const editados=ST.partidos.filter(p=>p.editor===empId&&delMes(p)&&p.estado!=="prox");
+  /* Edición — SOLO cuenta cuando el editor marcó ENTREGADO. No importa el estado de
+     filmación: si el editor entregó su parte, se le paga la edición. */
+  const editados=ST.partidos.filter(p=>p.editor===empId&&delMes(p));
   const editadosEnt=editados.filter(p=>p.estadoEdit==="entreg");
   const pendEdit=editados.filter(p=>p.estadoEdit!=="entreg");
   const edicion=editadosEnt.length*(+t.edicion||0);
