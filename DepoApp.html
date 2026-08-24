@@ -167,6 +167,7 @@
 <div id="login">
   <div class="logomark" id="loginLogo"></div>
   <div class="tagline">Panel interno</div>
+  <div id="verTag" style="text-align:center;color:var(--muted);font-size:11px;margin-top:4px"></div>
   <div id="whoStep"><div class="who" id="whoList"></div></div>
   <div id="pinPad" class="hidden">
     <div class="avatar" id="pinAvatar" style="margin:0 auto 10px;width:52px;height:52px;font-size:18px"></div>
@@ -415,6 +416,7 @@ let ST=loadState();(function wipeAgosto(){ if(ST.wipeV===3) return; ST.wipeV=3; 
    manda la notificación push SOLO al empleado que corresponde.            */
 const BACKEND_URL="https://script.google.com/macros/s/AKfycbxYQIv9vEMSLUcmOsoZcdFC9laPOQTmT2QofrecfAqN0JJRfnYFffQ8KpdUpkG-YOfgaw/exec";
 const BACKEND_TOKEN="DepoApp2026x";
+const APP_VER="v29-sync";   // versión visible para verificar qué corre cada celu
 let SYNC_MSG="", SYNC_OK=null, TAB_ACTUAL="resumen";
 
 const _sa=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
@@ -901,6 +903,7 @@ function imagenLiquidacion(ym, soloEmp){
 let SESSION=null,pinBuf="",pinTarget=null,pinMode="enter",pinFirst="";
 function renderWho(){
   $("#loginLogo").innerHTML=logoFull(38);
+  var _vt=$("#verTag"); if(_vt) _vt.textContent=APP_VER;
   const list=$("#whoList");list.innerHTML="";
   const todos=ST.empleados.filter(e=>e.activo!==false).concat([JEFE]);
   todos.forEach(e=>{
