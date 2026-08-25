@@ -168,6 +168,10 @@
   <div class="logomark" id="loginLogo"></div>
   <div class="tagline">Panel interno</div>
   <div id="verTag" style="text-align:center;color:var(--muted);font-size:11px;margin-top:4px"></div>
+  <div id="loginNota" style="max-width:460px;margin:16px auto 4px;background:linear-gradient(180deg,#2a2408,#1c1806);border:1px solid var(--yellow);border-radius:14px;padding:13px 16px;text-align:center;line-height:1.45">
+    <div style="color:var(--yellow);font-weight:800;font-size:14.5px">🔄 Cada vez que entres, tocá ACTUALIZAR</div>
+    <div style="color:#ffe08a;font-size:12.5px;margin-top:3px">Entrá a tu perfil y tocá el botón de recargar (↻) arriba a la derecha para ver los partidos y cambios al día.</div>
+  </div>
   <div id="whoStep"><div class="who" id="whoList"></div></div>
   <div id="pinPad" class="hidden">
     <div class="avatar" id="pinAvatar" style="margin:0 auto 10px;width:52px;height:52px;font-size:18px"></div>
@@ -416,7 +420,7 @@ let ST=loadState();(function wipeAgosto(){ if(ST.wipeV===3) return; ST.wipeV=3; 
    manda la notificación push SOLO al empleado que corresponde.            */
 const BACKEND_URL="https://script.google.com/macros/s/AKfycbxYQIv9vEMSLUcmOsoZcdFC9laPOQTmT2QofrecfAqN0JJRfnYFffQ8KpdUpkG-YOfgaw/exec";
 const BACKEND_TOKEN="DepoApp2026x";
-const APP_VER="v29-sync";   // versión visible para verificar qué corre cada celu
+const APP_VER="v30-aviso";   // versión visible para verificar qué corre cada celu
 let SYNC_MSG="", SYNC_OK=null, TAB_ACTUAL="resumen";
 
 const _sa=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
