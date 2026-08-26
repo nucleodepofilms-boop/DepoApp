@@ -420,7 +420,7 @@ let ST=loadState();(function wipeAgosto(){ if(ST.wipeV===3) return; ST.wipeV=3; 
    manda la notificación push SOLO al empleado que corresponde.            */
 const BACKEND_URL="https://script.google.com/macros/s/AKfycbxYQIv9vEMSLUcmOsoZcdFC9laPOQTmT2QofrecfAqN0JJRfnYFffQ8KpdUpkG-YOfgaw/exec";
 const BACKEND_TOKEN="DepoApp2026x";
-const APP_VER="v30-aviso";   // versión visible para verificar qué corre cada celu
+const APP_VER="v31-comp";   // versión visible para verificar qué corre cada celu
 let SYNC_MSG="", SYNC_OK=null, TAB_ACTUAL="resumen";
 
 const _sa=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
@@ -617,14 +617,15 @@ async function appPull(){
     // COMPARTIDOS: el jefe es la fuente de verdad -> SIEMPRE publica lo suyo.
     // Los empleados SIEMPRE aplican lo que publicó el jefe.
     if(SESSION && SESSION.role==="jefe"){ appPushCompartidos(); }
-    else if(d.data.compartidos){ try{ aplicarCompartidos(JSON.parse(d.data.compartidos)); cambio=true; }catch(e){} }
+    else if(d.data.compartidos){ try{ var _m=JSON.parse(d.data.compartidos); ST.compMap=_m; aplicarCompartidos(_m); cambio=true; }catch(e){} }
     ST.avatares=ST.avatares||{};
     Object.keys(d.data).forEach(function(k){ if(k.indexOf("avatar:")===0){ var id=k.slice(7),v=d.data[k]; if(v&&ST.avatares[id]!==v){ ST.avatares[id]=v; cambio=true; } } });
     if(cambio) saveState();
   }catch(e){}
 }
 async function appPushCompartidos(){
-  try{ await fetch(BACKEND_URL+"?action=appset&token="+encodeURIComponent(BACKEND_TOKEN)+"&key=compartidos&value="+encodeURIComponent(JSON.stringify(compartidosMap()))); }catch(e){}
+  try{ var m=compartidosMap(); ST.compMap=m; saveState();   // guardo también local para consultarlo directo
+    await fetch(BACKEND_URL+"?action=appset&token="+encodeURIComponent(BACKEND_TOKEN)+"&key=compartidos&value="+encodeURIComponent(JSON.stringify(m))); }catch(e){}
 }
 async function appPushAvatar(id,dataURL){
   try{ await fetchT(BACKEND_URL+"?action=appset&token="+encodeURIComponent(BACKEND_TOKEN),{
@@ -689,14 +690,18 @@ const _clubDe=p=>ST.clubes.find(x=>_sa(x.club)===_sa(p.club));
    Ya no hay nada hardcodeado: si el jefe no lo marcó, NO comparte. */
 const _kc=s=>_sa(s).replace(/\s+/g,"");   // categoría sin espacios: "C20 / ORO"=="C20/Oro"
 function _catDe(p){var c=_clubDe(p);if(!c)return null;return (c.cats||[]).find(k=>_kc(k.cat)===_kc(p.cat))||null;}
-function clubComparte(p){var ct=_catDe(p);return ct?!!ct.comp:false;}
+/* Busca el partido directo en el mapa sincronizado (club+categoría del PARTIDO), sin
+   depender de que este celu tenga esa categoría cargada en su config. */
+function _compDe(p){var e=(ST.compMap||{})[_sa(p.club)+"||"+_kc(p.cat)];return e||null;}
+function clubComparte(p){var e=_compDe(p);if(e)return !!e.c;var ct=_catDe(p);return ct?!!ct.comp:false;}
 /* Etiqueta chica de compartido/no-compartido para mostrar en cualquier tarjeta de partido. */
 function compChip(p){return clubComparte(p)
   ? ` <span class="pill comp" style="font-size:10px;padding:1px 7px;vertical-align:middle">🤝 COMPARTIDO</span>`
   : ` <span class="pill" style="font-size:10px;padding:1px 7px;vertical-align:middle;background:#3a1c22;color:#ff96a2">🚫 NO COMPARTE VIDEO</span>`;}
 /* Precio compartido: primero el que cargó el jefe a mano (precioComp del club);
    si no cargó ninguno, cae al % del individual para no mostrar $0. */
-function precioRival(p){var c=_clubDe(p);var ct=_catDe(p);
+function precioRival(p){var c=_clubDe(p);var ct=_catDe(p);var e=_compDe(p);
+  if(e&&+e.p)return +e.p;                            // precio a mano SINCRONIZADO (del mapa)
   if(ct&&+ct.precioComp)return +ct.precioComp;      // precio a mano de ESA categoría
   if(c&&+c.precioComp)return +c.precioComp;           // precio a mano del club (compatibilidad)
   if(ct&&+ct.precio)return pctCompartido(+ct.precio); // si no, % del individual de la categoría
