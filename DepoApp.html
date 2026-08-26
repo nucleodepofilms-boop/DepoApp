@@ -425,7 +425,7 @@ let ST=loadState();(function wipeAgosto(){ if(ST.wipeV===3) return; ST.wipeV=3; 
    manda la notificación push SOLO al empleado que corresponde.            */
 const BACKEND_URL="https://script.google.com/macros/s/AKfycbxYQIv9vEMSLUcmOsoZcdFC9laPOQTmT2QofrecfAqN0JJRfnYFffQ8KpdUpkG-YOfgaw/exec";
 const BACKEND_TOKEN="DepoApp2026x";
-const APP_VER="v34-sw";   // versión visible para verificar qué corre cada celu
+const APP_VER="v35-durable";   // versión visible para verificar qué corre cada celu
 let SYNC_MSG="", SYNC_OK=null, TAB_ACTUAL="resumen";
 
 const _sa=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
@@ -621,10 +621,10 @@ async function appPull(){
     const r=await fetchT(BACKEND_URL+"?action=appget&token="+encodeURIComponent(BACKEND_TOKEN),{},45000);
     const d=await r.json(); if(!d||!d.ok||!d.data) return;
     let cambio=false;
-    // COMPARTIDOS: el jefe es la fuente de verdad -> SIEMPRE publica lo suyo.
-    // Los empleados SIEMPRE aplican lo que publicó el jefe.
-    if(SESSION && SESSION.role==="jefe"){ appPushCompartidos(); }
-    else if(d.data.compartidos){ try{ var _m=JSON.parse(d.data.compartidos); ST.compMap=_m; aplicarCompartidos(_m); cambio=true; }catch(e){} }
+    // COMPARTIDOS: TODOS (jefe y empleados) LEEN el mapa del servidor. El jefe solo
+    // publica cuando edita a mano (botón Compartidos / lápiz). Así un celu nuevo o con
+    // caché borrado RECUPERA la config del servidor en vez de pisarla con vacío.
+    if(d.data.compartidos){ try{ var _m=JSON.parse(d.data.compartidos); ST.compMap=_m; aplicarCompartidos(_m); cambio=true; }catch(e){} }
     ST.avatares=ST.avatares||{};
     Object.keys(d.data).forEach(function(k){ if(k.indexOf("avatar:")===0){ var id=k.slice(7),v=d.data[k]; if(v&&ST.avatares[id]!==v){ ST.avatares[id]=v; cambio=true; } } });
     if(cambio) saveState();
