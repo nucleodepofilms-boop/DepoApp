@@ -1,7 +1,7 @@
 /* DepoApp — Service Worker: instalable + push + auto-actualizacion */
 try { importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDKWorker.js"); } catch (e) {}
 
-const CACHE = "depoapp-v16";
+const CACHE = "depoapp-v17";
 const ASSETS = ["./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", (e) => {
@@ -14,13 +14,18 @@ self.addEventListener("activate", (e) => {
 });
 self.addEventListener("message", (e) => { if (e.data === "skipWaiting") self.skipWaiting(); });
 
-/* El HTML SIEMPRE desde la red (nunca cache viejo). Solo cae al cache si no hay internet. */
+/* El HTML SIEMPRE de la red y SIN CACHÉ (cache:"no-store"), así cada vez que se abre
+   la app toma la última versión sola, sin reinstalar. Solo cae al cache si no hay internet. */
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
   const url = new URL(e.request.url);
   const esDoc = e.request.mode === "navigate" || url.pathname.endsWith("DepoApp.html") || url.pathname.endsWith("/");
   if (esDoc) {
-    e.respondWith(fetch(e.request).catch(() => caches.match("./DepoApp.html")));
+    e.respondWith(
+      fetch(e.request.url, { cache: "no-store" })
+        .then((res) => { const c = res.clone(); caches.open(CACHE).then(x => x.put("./DepoApp.html", c)).catch(()=>{}); return res; })
+        .catch(() => caches.match("./DepoApp.html"))
+    );
     return;
   }
   e.respondWith(
