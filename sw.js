@@ -1,7 +1,7 @@
 /* DepoApp — Service Worker: instalable + push + auto-actualizacion */
 try { importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDKWorker.js"); } catch (e) {}
 
-const CACHE = "depoapp-v17";
+const CACHE = "depoapp-v18";
 const ASSETS = ["./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", (e) => {
@@ -19,6 +19,9 @@ self.addEventListener("message", (e) => { if (e.data === "skipWaiting") self.ski
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
   const url = new URL(e.request.url);
+  /* NO tocar pedidos a otros dominios (el backend de Apps Script, OneSignal, etc.).
+     El SW solo maneja los archivos propios de la app. Así el backend siempre trae JSON fresco. */
+  if (url.origin !== self.location.origin) return;
   const esDoc = e.request.mode === "navigate" || url.pathname.endsWith("DepoApp.html") || url.pathname.endsWith("/");
   if (esDoc) {
     e.respondWith(

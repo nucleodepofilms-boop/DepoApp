@@ -425,7 +425,7 @@ let ST=loadState();(function wipeAgosto(){ if(ST.wipeV===3) return; ST.wipeV=3; 
    manda la notificación push SOLO al empleado que corresponde.            */
 const BACKEND_URL="https://script.google.com/macros/s/AKfycbxYQIv9vEMSLUcmOsoZcdFC9laPOQTmT2QofrecfAqN0JJRfnYFffQ8KpdUpkG-YOfgaw/exec";
 const BACKEND_TOKEN="DepoApp2026x";
-const APP_VER="v33-import";   // versión visible para verificar qué corre cada celu
+const APP_VER="v34-sw";   // versión visible para verificar qué corre cada celu
 let SYNC_MSG="", SYNC_OK=null, TAB_ACTUAL="resumen";
 
 const _sa=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
@@ -544,16 +544,13 @@ function fetchT(url,opts,ms){ opts=opts||{}; ms=ms||15000; var ac=new AbortContr
   return fetch(url,Object.assign({},opts,{signal:ac.signal})).finally(function(){clearTimeout(t);}); }
 async function sincronizar(silencioso){
   let okPart=false, res={nuevos:0,cambios:0}, total=0, errMsg="";
-  try{ await pushPendientes(); }catch(e){}
-  // 1) Bajar partidos (si falla, seguimos igual con fotos/compartidos)
+  // 1) Bajar partidos (es lo único que hace esperar al botón)
   try{
     const r=await fetchT(BACKEND_URL+"?action=partidos&token="+encodeURIComponent(BACKEND_TOKEN),{},45000);
     const d=await r.json();
     if(!d.ok) throw new Error(d.error||"respuesta inválida");
     res=aplicarRemotos(d.partidos); total=d.total; okPart=true;
   }catch(e){ errMsg=e.message||String(e); }
-  // 2) Bajar fotos + compartidos (aunque los partidos hayan fallado)
-  try{ await appPull(); subirMiAvatar(); }catch(e){}
   saveState();
   if(okPart){
     SYNC_OK=true; SYNC_MSG="Excel sincronizado "+new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"});
@@ -565,8 +562,13 @@ async function sincronizar(silencioso){
   }else{
     SYNC_OK=false; SYNC_MSG="Sin conexión con el Excel";
     if(!silencioso) alert("No pude sincronizar.\n\n"+errMsg);
-    refrescarVista();   // igual refrescamos por si bajaron fotos/compartidos
+    refrescarVista();
   }
+  // 2) EN SEGUNDO PLANO (no traban el botón): reintentos pendientes + fotos + compartidos
+  (async function(){
+    try{ await pushPendientes(); }catch(e){}
+    try{ await appPull(); subirMiAvatar(); saveState(); refrescarVista(); }catch(e){}
+  })();
 }
 
 /* Guarda un partido en el Excel. El backend avisa al empleado por push.
