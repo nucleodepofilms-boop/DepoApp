@@ -425,7 +425,7 @@ let ST=loadState();(function wipeAgosto(){ if(ST.wipeV===3) return; ST.wipeV=3; 
    manda la notificación push SOLO al empleado que corresponde.            */
 const BACKEND_URL="https://script.google.com/macros/s/AKfycbxYQIv9vEMSLUcmOsoZcdFC9laPOQTmT2QofrecfAqN0JJRfnYFffQ8KpdUpkG-YOfgaw/exec";
 const BACKEND_TOKEN="DepoApp2026x";
-const APP_VER="v35-durable";   // versión visible para verificar qué corre cada celu
+const APP_VER="v36-import2";   // versión visible para verificar qué corre cada celu
 let SYNC_MSG="", SYNC_OK=null, TAB_ACTUAL="resumen";
 
 const _sa=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
@@ -923,8 +923,21 @@ function renderWho(){
   var _ib=$("#impBtn"); if(_ib) _ib.onclick=function(e){e.preventDefault(); var b=$("#impBox"); b.style.display=(b.style.display==="none"?"block":"none");};
   var _ig=$("#impGo"); if(_ig) _ig.onclick=function(){ var j=($("#impTxt").value||"").trim();
     if(j.length<50){ alert("Pegá primero los datos que copiaste de la app vieja."); return; }
-    try{ JSON.parse(j); }catch(e){ alert("El texto pegado no es válido. Copialo de nuevo desde la app vieja."); return; }
-    localStorage.setItem(LS_KEY,j); alert("✅ Datos importados. Recargando…"); location.reload(); };
+    var old; try{ old=JSON.parse(j); }catch(e){ alert("El texto pegado no es válido. Copialo de nuevo desde la app vieja."); return; }
+    if(!old||!old.clubes){ alert("No encontré la config de clubes en ese texto. Copialo de nuevo desde la app vieja."); return; }
+    /* Importo SOLO lo liviano e importante (evita el error de tamaño): clubes (config +
+       compartidos), claves y tarifas. Fotos y partidos se bajan solos del servidor. */
+    try{
+      ST.clubes=old.clubes;
+      if(old.pins) ST.pins=Object.assign({}, ST.pins||{}, old.pins);
+      if(old.tarifas) ST.tarifas=old.tarifas;
+      try{ ST.compMap=compartidosMap(); }catch(e){}
+      saveState();
+      try{ appPushCompartidos(); }catch(e){}
+      alert("✅ Listo: se importaron tus clubes, compartidos y tu clave. Recargando…");
+      location.reload();
+    }catch(err){ alert("No se pudo guardar: "+err); }
+  };
   const list=$("#whoList");list.innerHTML="";
   const todos=ST.empleados.filter(e=>e.activo!==false).concat([JEFE]);
   todos.forEach(e=>{
