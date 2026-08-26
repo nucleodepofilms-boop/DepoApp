@@ -420,7 +420,7 @@ let ST=loadState();(function wipeAgosto(){ if(ST.wipeV===3) return; ST.wipeV=3; 
    manda la notificación push SOLO al empleado que corresponde.            */
 const BACKEND_URL="https://script.google.com/macros/s/AKfycbxYQIv9vEMSLUcmOsoZcdFC9laPOQTmT2QofrecfAqN0JJRfnYFffQ8KpdUpkG-YOfgaw/exec";
 const BACKEND_TOKEN="DepoApp2026x";
-const APP_VER="v31-comp";   // versión visible para verificar qué corre cada celu
+const APP_VER="v32-comp";   // versión visible para verificar qué corre cada celu
 let SYNC_MSG="", SYNC_OK=null, TAB_ACTUAL="resumen";
 
 const _sa=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
@@ -688,7 +688,7 @@ const pctCompartido=p=>Math.round(p*ST.config.compartidoPct/100);
 const _clubDe=p=>ST.clubes.find(x=>_sa(x.club)===_sa(p.club));
 /* ¿Comparte este club? Lo decide el jefe a mano (botón 🤝 Compartidos / Editar club).
    Ya no hay nada hardcodeado: si el jefe no lo marcó, NO comparte. */
-const _kc=s=>_sa(s).replace(/\s+/g,"");   // categoría sin espacios: "C20 / ORO"=="C20/Oro"
+const _kc=s=>_sa(s).replace(/[^A-Z0-9]/g,"");   // solo letras/números: "C20 / ORO"=="C20/Oro"=="C20-Oro"
 function _catDe(p){var c=_clubDe(p);if(!c)return null;return (c.cats||[]).find(k=>_kc(k.cat)===_kc(p.cat))||null;}
 /* Busca el partido directo en el mapa sincronizado (club+categoría del PARTIDO), sin
    depender de que este celu tenga esa categoría cargada en su config. */
