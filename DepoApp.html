@@ -425,7 +425,7 @@ let ST=loadState();(function wipeAgosto(){ if(ST.wipeV===3) return; ST.wipeV=3; 
    manda la notificación push SOLO al empleado que corresponde.            */
 const BACKEND_URL="https://script.google.com/macros/s/AKfycbxYQIv9vEMSLUcmOsoZcdFC9laPOQTmT2QofrecfAqN0JJRfnYFffQ8KpdUpkG-YOfgaw/exec";
 const BACKEND_TOKEN="DepoApp2026x";
-const APP_VER="v36-import2";   // versión visible para verificar qué corre cada celu
+const APP_VER="v37-exportclientes";   // versión visible para verificar qué corre cada celu
 let SYNC_MSG="", SYNC_OK=null, TAB_ACTUAL="resumen";
 
 const _sa=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
@@ -1301,7 +1301,7 @@ function viewClientes(v){
   const deps=[...new Set(ST.clubes.map(c=>c.deporte))];
   v.innerHTML=`<div class="pagetitle">Clientes <small>${ST.clubes.length} clubes · precio individual y compartido por categoría</small></div>
     <div class="note">🤝 Compartir se marca por categoría (botón "Compartidos" o el lápiz de cada una). Poné el precio que paga cada equipo a mano; si lo dejás vacío, usa el ${ST.config.compartidoPct}% del individual.</div>
-    <div class="flexbtns" style="margin-bottom:12px"><button class="btn sm" id="addClub">+ Sumar club</button><button class="btn sm" id="compBtn">🤝 Compartidos</button><button class="btn sm ghost" id="aplicarAum">Aplicar +${ST.config.aumentoPct}% a todos</button></div>
+    <div class="flexbtns" style="margin-bottom:12px"><button class="btn sm" id="addClub">+ Sumar club</button><button class="btn sm" id="compBtn">🤝 Compartidos</button><button class="btn sm ghost" id="aplicarAum">Aplicar +${ST.config.aumentoPct}% a todos</button>${(SESSION&&SESSION.role==="jefe")?'<button class="btn sm ghost" id="expClientes">📤 Exportar</button>':''}</div>
     <div id="clubZone"></div>`;
   const z=$("#clubZone");
   deps.forEach(dep=>{
@@ -1310,9 +1310,37 @@ function viewClientes(v){
   bindClubs(z);
   $("#addClub").onclick=()=>clubModal();
   $("#compBtn").onclick=()=>compartidosModal();
+  const _exp=$("#expClientes"); if(_exp) _exp.onclick=()=>exportarClientes();
   $("#aplicarAum").onclick=()=>{
     if(!confirm(`Esto sube TODOS los precios un ${ST.config.aumentoPct}%. ¿Seguro?`))return;
     ST.clubes.forEach(c=>c.cats.forEach(ct=>ct.precio=conAumento(ct.precio)));saveState();go("clientes")};
+}
+/* Exporta todos los clientes (club + categorías + local/visitante + cancha + edición +
+   comparte + precio) como texto para copiar. Solo lo ve el jefe. Incluye un JSON al final
+   por si en el futuro sirve para reimportar o para otros proyectos. */
+function exportarClientes(){
+  let out="DEPOFILMS — CLIENTES (export "+new Date().toLocaleDateString('es-AR')+")\n\n";
+  (ST.clubes||[]).forEach(c=>{
+    out+="• "+c.club+"  ["+(c.deporte||'')+" · "+(c.estado||'')+" · "+(c.pago||'')+(c.contacto?" · "+c.contacto:"")+"]\n";
+    (c.cats||[]).forEach(k=>{
+      out+="    - "+(k.cat||'?')+" | "+(k.local||'?')+" | cancha: "+(k.cancha||'?')+
+           " | "+(k.edi?'CON edición':'sin edición')+" | "+(k.comp?'comparte video':'no comparte')+
+           " | $"+(k.precio||0)+"\n";
+    });
+    out+="\n";
+  });
+  out+="\n----- JSON (no borrar, sirve para reimportar) -----\n"+JSON.stringify(ST.clubes);
+  openModal(`<h3>Exportar clientes</h3>
+    <div class="note">Copiá todo este texto y pegáselo a quien lo necesite.</div>
+    <textarea id="expTxt" style="width:100%;height:300px;font-size:12px" readonly></textarea>
+    <div class="flexbtns"><button class="btn" id="expCopy">Copiar todo</button><button class="btn ghost" onclick="closeModal()">Cerrar</button></div>`);
+  const ta=$("#expTxt"); ta.value=out;
+  $("#expCopy").onclick=function(){
+    ta.focus(); ta.select(); ta.setSelectionRange(0,999999);
+    try{ document.execCommand('copy'); }catch(e){}
+    try{ navigator.clipboard.writeText(out); }catch(e){}
+    this.textContent="✅ Copiado";
+  };
 }
 function clubCard(c){
   const i=ST.clubes.indexOf(c);
