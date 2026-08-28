@@ -399,11 +399,14 @@ function loadState(){
     config:Object.assign(structuredClone(CONFIG_DEF),s.config||{},{desdeFecha:(s.config&&s.config.desdeFecha)||"2026-07-28"}),
     pins:s.pins||{jefe:hashPin("2026")},
     avatares:s.avatares||{},
-    mesLiq:s.mesLiq||"2026-07",resetV:(s.resetV||2), cajaActual:s.cajaActual||"depofilms", wipeV:s.wipeV, migV:s.migV,
+    mesLiq:s.mesLiq||"2026-07",resetV:(s.resetV||2), cajaActual:s.cajaActual||"depofilms", wipeV:s.wipeV, migV:s.migV, migSem:s.migSem,
   };
 }
 function saveState(){localStorage.setItem(LS_KEY,JSON.stringify(ST))}
 let ST=loadState();(function wipeAgosto(){ if(ST.wipeV===3) return; ST.wipeV=3; ST.pins={jefe:hashPin("2026")}; ST.objetivos=[]; ST.avatares={}; ST.movimientos=[]; ST.fotos=[]; ST.partidos=(ST.partidos||[]).filter(function(p){return String(p.fecha)>="2026-08-01"}); ST.config.desdeFecha="2026-08-01"; ST.mesLiq="2026-08"; saveState(); })();
+/* El 2º semestre arrancó el 29/07: bajamos la fecha de corte para volver a traer esos
+   partidos (29-31 jul) y que entren en el pago de agosto. Se re-traen en la próxima sincronización. */
+(function migSemestre(){ if(ST.migSem>=1) return; ST.migSem=1; ST.config.desdeFecha="2026-07-29"; saveState(); })();
 (function migEntrega(){ if(ST.migV>=2) return; ST.migV=2;
   var _hoy=new Date().toISOString().slice(0,10);
   /* partidos: agrega estado de entrega del editor y repara estados inválidos (ej. "ASIGNADO" que venía del Excel) */
@@ -425,7 +428,7 @@ let ST=loadState();(function wipeAgosto(){ if(ST.wipeV===3) return; ST.wipeV=3; 
    manda la notificación push SOLO al empleado que corresponde.            */
 const BACKEND_URL="https://script.google.com/macros/s/AKfycbxYQIv9vEMSLUcmOsoZcdFC9laPOQTmT2QofrecfAqN0JJRfnYFffQ8KpdUpkG-YOfgaw/exec";
 const BACKEND_TOKEN="DepoApp2026x";
-const APP_VER="v37-exportclientes";   // versión visible para verificar qué corre cada celu
+const APP_VER="v40-semestre";   // versión visible para verificar qué corre cada celu
 let SYNC_MSG="", SYNC_OK=null, TAB_ACTUAL="resumen";
 
 const _sa=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
@@ -737,9 +740,12 @@ function computeFin(cuenta){
     meses:Object.keys(pm).sort().map(k=>({label:MESN[+k.split("-")[1]-1],...pm[k]})),
     cats:Object.entries(pc).map(([cat,val])=>({cat,val})).sort((a,b)=>b.val-a.val)}
 }
-/* Quien edita lo que filmo esta persona (se configura en Ajustes) */
+/* Quien edita lo que filmo esta persona. Fallback fijo que COINCIDE con el Excel:
+   Santino (santi) edita santi/giu/facu/jefe; Enzo (enzo) edita luca/agus. */
 function editorDe(empId){
-  return (ST.config.editorPorCamara||{})[empId]||"";
+  var m=(ST.config.editorPorCamara||{})[empId];
+  if(m) return m;
+  return ({santi:"santi",giu:"santi",facu:"santi",jefe:"santi",enzo:"enzo",luca:"enzo",agus:"enzo"})[empId]||"";
 }
 
 /* Tramo del club: chico (1 a 3 categorías) o grande (4 o más) */
@@ -775,7 +781,14 @@ function esLejana(cancha){
 function liquidacion(empId,ym){
   ym=ym||ST.mesLiq||"2026-08";
   const e=empById(empId)||{},t=ST.tarifas;
-  const delMes=x=>x.fecha&&String(x.fecha).startsWith(ym);
+  /* El 2º semestre arrancó el 29/07: esos partidos (29-31 jul 2026) se pagan CON AGOSTO. */
+  const delMes=x=>{
+    if(!x.fecha) return false;
+    const f=String(x.fecha);
+    if(f.startsWith(ym)) return true;
+    if(ym==="2026-08"&&(f==="2026-07-29"||f==="2026-07-30"||f==="2026-07-31")) return true;
+    return false;
+  };
 
   /* Filmación — SOLO cuenta cuando el camarógrafo marcó ENTREGADO */
   const mios=ST.partidos.filter(p=>p.emp===empId&&delMes(p));
@@ -800,7 +813,9 @@ function liquidacion(empId,ym){
 
   /* Edición — SOLO cuenta cuando el editor marcó ENTREGADO. No importa el estado de
      filmación: si el editor entregó su parte, se le paga la edición. */
-  const editados=ST.partidos.filter(p=>p.editor===empId&&delMes(p));
+  /* Editor = según quién FILMÓ (editorDe del camarógrafo), igual que el Excel. Cuenta los
+     partidos marcados EDITADO=SI (columna EDITADO). Los de rugby / sin editar no cuentan. */
+  const editados=ST.partidos.filter(p=>editorDe(p.emp)===empId&&delMes(p));
   const editadosEnt=editados.filter(p=>p.estadoEdit==="entreg");
   const pendEdit=editados.filter(p=>p.estadoEdit!=="entreg");
   const edicion=editadosEnt.length*(+t.edicion||0);
