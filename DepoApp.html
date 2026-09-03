@@ -428,7 +428,8 @@ let ST=loadState();(function wipeAgosto(){ if(ST.wipeV===3) return; ST.wipeV=3; 
    manda la notificación push SOLO al empleado que corresponde.            */
 const BACKEND_URL="https://script.google.com/macros/s/AKfycbxYQIv9vEMSLUcmOsoZcdFC9laPOQTmT2QofrecfAqN0JJRfnYFffQ8KpdUpkG-YOfgaw/exec";
 const BACKEND_TOKEN="DepoApp2026x";
-const APP_VER="v40-semestre";   // versión visible para verificar qué corre cada celu
+const APP_VER="v41-mes";   // versión visible para verificar qué corre cada celu
+let PERFIL_YM=null;             // mes elegido por el empleado en su perfil (default: el que paga el jefe)
 let SYNC_MSG="", SYNC_OK=null, TAB_ACTUAL="resumen";
 
 const _sa=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
@@ -1114,8 +1115,17 @@ function hoyCard(p){
   return (clubComparte(p)&&!p.club2)?`<div class="mwrap">${row}${compartibleBanner(p)}</div>`:row;
 }
 function viewPerfil(v){
-  const e=SESSION.emp,L=liquidacion(e.id);
-  const mesNom=(()=>{const ym=(ST.mesLiq||"2026-08").split("-");return MESN[+ym[1]-1]})();
+  const e=SESSION.emp;
+  const curYM=hoyISO().slice(0,7);
+  if(!PERFIL_YM) PERFIL_YM=ST.mesLiq||curYM;
+  const ym=PERFIL_YM;
+  const L=liquidacion(e.id,ym);
+  const mesNom=MESN[+ym.split("-")[1]-1];
+  /* meses que el empleado puede mirar: siempre agosto y el mes actual, más los que tenga con partidos */
+  const setYM={}; setYM["2026-08"]=1; setYM[curYM]=1; if(ST.mesLiq)setYM[ST.mesLiq]=1;
+  ST.partidos.forEach(p=>{ if(p.fecha&&(p.emp===e.id||editorDe(p.emp)===e.id)) setYM[String(p.fecha).slice(0,7)]=1; });
+  const mesesDisp=Object.keys(setYM).filter(m=>m>="2026-08").sort().reverse();
+  const mesSel=`<select id="perfMes" class="selmes" style="padding:6px 10px;border-radius:8px;border:1px solid #ccc;font-weight:700">${mesesDisp.map(m=>`<option value="${m}" ${m===ym?'selected':''}>${MESN[+m.split("-")[1]-1][0].toUpperCase()+MESN[+m.split("-")[1]-1].slice(1)} ${m.split("-")[0]}</option>`).join("")}</select>`;
   const mine=ST.partidos.filter(p=>p.emp===e.id).sort((a,b)=>a.fecha<b.fecha?-1:1);
   const _hoy=hoyISO();
   /* Se puede entregar cualquier partido de HOY o anterior que todavía no se entregó
@@ -1136,7 +1146,8 @@ function viewPerfil(v){
     ${nuevos?`<div class="alertbanner">🔔 Tenés <b style="color:var(--yellow)">&nbsp;${nuevos} novedad(es)&nbsp;</b> en tus partidos <button class="btn sm x" id="verVisto">Marcar todo</button></div>
     <div class="sectitle" style="margin-top:12px">🔔 Notificaciones (${nuevos})</div>
     <div id="notifZoneEmp">${mine.filter(p=>p.nuevo).map(p=>notifCard(p,false)).join("")}</div>`:''}
-    <div class="grid kpis" style="margin-top:14px">
+    <div class="mesbar" style="margin-top:14px;display:flex;align-items:center;gap:10px;font-size:14.5px">📅 <span style="font-weight:700">Mes:</span>${mesSel}</div>
+    <div class="grid kpis" style="margin-top:12px">
       <div class="kpi"><div class="lbl">A cobrar (${mesNom})</div><div class="val gold">${money(L.total)}</div><div class="sub">solo lo entregado</div></div>
       <div class="kpi"><div class="lbl">Partidos del mes</div><div class="val">${L.partidos}</div>${L.pendFilm?`<div class="sub">${L.pendFilm} sin entregar</div>`:''}</div>
       <div class="kpi"><div class="lbl">Comisiones</div><div class="val">${money(L.comision)}</div><div class="sub">2º equipo</div></div>
@@ -1172,6 +1183,7 @@ function viewPerfil(v){
   $("#actNotif").onclick=pedirPermisoPush;
   var _ant=$("#actNotifTop");if(_ant)_ant.onclick=pedirPermisoPush;
   $("#chgPin").onclick=()=>changePinModal(e.id);
+  const _pm=$("#perfMes"); if(_pm) _pm.onchange=ev=>{PERFIL_YM=ev.target.value;viewPerfil(v)};
   v.querySelectorAll("[data-entregar]").forEach(b=>b.onclick=()=>{
     const p=ST.partidos.find(x=>x.id===b.dataset.entregar); if(!p)return;
     p.estado="entreg"; p.nuevo=false; p.cambio=""; p.needsPush=true; saveState(); confirmarPush(p); viewPerfil(v);
